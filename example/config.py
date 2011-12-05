@@ -7,7 +7,7 @@ from example.models import Copy
 class AtomConfigFacade(XmlFacade):
 
     @property
-    def __instance_filters__(self):
+    def instance_filters(self):
         return {'title': self.path}
 
 

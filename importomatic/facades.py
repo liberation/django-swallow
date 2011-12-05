@@ -5,7 +5,7 @@ from lxml import etree
 class BaseFacade(object):
 
     @property
-    def __instance_filters__(self):
+    def instance_filters(self):
         raise NotImplemented()
 
     def __init__(self, path, file):
