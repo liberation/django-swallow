@@ -7,6 +7,26 @@ from django.shortcuts import get_object_or_404
 logger = logging.getLogger()
 
 
+def log_exception_and_move_file(
+        exception,
+        action,
+        work_file_path,
+        error_file_path
+    ):
+    msg = '%s failed with %s: %s' % (
+        action,
+        exception,
+        exception.message
+    )
+    logger.error(msg)
+    logger.info('move %s to %s',
+        work_file_path,
+        error_file_path,
+    )
+    shutil.move(work_file_path, error_file_path)
+
+
+
 class DefaultConfig(object):
 
     def __init__(self, dryrun=False):
@@ -88,10 +108,9 @@ class DefaultConfig(object):
             for name in files:
                 input_file_path = os.path.join(input_path, name)
                 if self.match(input_file_path):
-                    input_file_path = os.path.realpath(input_file_path)
+                    # the file match configuration
                     logger.info('match %s' % input_file_path)
 
-                    # the file match configuration
                     work_file_path = os.path.join(work_path, name)
                     done_file_path = os.path.join(done_path, name)
                     error_file_path = os.path.join(error_path, name)
@@ -104,7 +123,16 @@ class DefaultConfig(object):
 
                         # build facade
                         file_path = os.path.join(path, name)
-                        facade = self.Facade(file_path, f)
+                        # try/catch
+                        try:
+                            facade = self.Facade(file_path, f)
+                        except Exception, exception:
+                            log_exception_and_move_file(
+                                exception,
+                                '%s Facade creation' % file_path,
+                                work_file_path,
+                                error_file_path,
+                            )
 
                         # get or create instance
                         instance = self.model.objects.get_or_create(
@@ -114,18 +142,13 @@ class DefaultConfig(object):
                         logger.info('process')
                         try:
                             self.process(facade, instance)
-                        except Exception, e:
-                            msg = 'Processing %s raised %s: %s' % (
-                                os.path.join(root, name),
-                                e,
-                                e.message
-                            )
-                            logger.error(msg)
-                            logger.info('move %s to %s',
+                        except Exception, exception:
+                            log_exception_and_move_file(
+                                exception,
+                                '%s processing' % file_path,
                                 work_file_path,
                                 error_file_path,
                             )
-                            shutil.move(work_file_path, error_file_path)
                         else:
                             logger.info('move %s to %s' % (
                                 work_file_path,

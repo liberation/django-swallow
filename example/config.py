@@ -21,4 +21,4 @@ class Github(DefaultConfig):
     Facade = AtomConfigFacade
 
     def process(self, facade, instance):
-        raise Exception('FUUUUUUU')
+        return
