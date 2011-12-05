@@ -108,7 +108,7 @@ class DefaultConfig(object):
 
                         # get or create instance
                         instance = self.model.objects.get_or_create(
-                            **facade.__instance_filters__
+                            **facade.instance_filters
                         )
 
                         logger.info('process')
