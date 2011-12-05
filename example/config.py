@@ -21,4 +21,4 @@ class Github(DefaultConfig):
     Facade = AtomConfigFacade
 
     def process(self, facade, instance):
-        import pdb; pdb.set_trace()
+        raise Exception('FUUUUUUU')
