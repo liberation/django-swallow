@@ -123,6 +123,7 @@ class DefaultConfig(object):
 
                         # build facade
                         file_path = os.path.join(path, name)
+
                         # try/catch
                         try:
                             facade = self.Facade(file_path, f)
@@ -155,8 +156,9 @@ class DefaultConfig(object):
                                 done_file_path,
                             ))
                             shutil.move(work_file_path, done_file_path)
-                        f.close()
-                        logger.info('close')
+                        finally:
+                            f.close()
+                            logger.info('close')
             # recurse!
             for subdir in dirs:
                 new_path = os.path.join(path, subdir)
