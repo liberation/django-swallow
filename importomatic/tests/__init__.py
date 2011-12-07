@@ -19,7 +19,7 @@ class Author(models.Model):
 class Article(models.Model):
     title = models.CharField(max_length=255)
     sections = models.ManyToManyField(Section, through=ArticleToSection)
-    type = models.CharField(max_length=255)
+    kind = models.CharField(max_length=255)
 
     def __unicode__(self):
         return self.title

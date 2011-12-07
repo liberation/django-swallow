@@ -45,10 +45,10 @@ class ArticleConfig(DefaultConfig):
     Facade = ArticleFacade
 
     def match(self, f):
-        return True
+        return f.endswith('.xml') and not f.startswith('.')
 
     @staticmethod
-    def get_or_create_section_from_title(facade, instance, value):
+    def get_or_create_section_from_name(facade, instance, value):
         section, created = Section.objects.get_or_create(name=value)
         section.save()
         return section, created
@@ -70,14 +70,14 @@ class ArticleConfig(DefaultConfig):
             instance,
             'sections',
             create_through=self.create_article_to_section,
-            get_or_create_related=self.get_or_create_section_from_title
+            get_or_create_related=self.get_or_create_section_from_name,
         )
 
         self.populate_from_matching(
             'SOURCES',
             facade,
             instance,
-            'type'
+            'kind'
         )
 
         instance.title = facade.title
@@ -85,7 +85,6 @@ class ArticleConfig(DefaultConfig):
 
 
 class IntegrationTests(TestCase):
-
 
     def setUp(cls):
         import_dir = os.path.join(CURRENT_PATH, 'import')
@@ -125,26 +124,26 @@ class IntegrationTests(TestCase):
         self.assertEqual(3, Article.objects.count())
         expected_values = {
             'Article Foo': {
-                'type':'DEPECHE',
+                'kind':'DEPECHE',
                 'sections': ['FOO', 'FOOBAR', 'FOOBARBAZ'],
                 'weight': 10
             },
             'Article FooBar': {
-                'type':'DEPECHE',
+                'kind':'DEPECHE',
                 'sections': ['FOOBAR', 'FOOBARBAZ'],
                 'weight': 20
             },
             'Article FooBarBaz': {
-                'type':'DEPECHE',
+                'kind':'DEPECHE',
                 'sections': ['FOOBARBAZ'],
                 'weight': 30
             },
-
         }
+
         for article in Article.objects.all():
             self.assertIn(article.title, expected_values.keys())
             expected_value = expected_values[article.title]
-            self.assertEqual(expected_value['type'], article.type)
+            self.assertEqual(expected_value['kind'], article.kind)
             self.assertEqual(
                 len(expected_value['sections']),
                 article.sections.count()
