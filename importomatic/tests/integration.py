@@ -9,7 +9,7 @@ from importomatic.config import DefaultConfig
 from importomatic.facades import XmlFacade
 
 from importomatic.models import Matching
-from importomatic.tests import Section, Article, ArticleToSection, Author
+from importomatic.tests import Section, Article, ArticleToSection
 
 CURRENT_PATH = os.path.dirname(__file__)
 
@@ -80,6 +80,15 @@ class ArticleConfig(DefaultConfig):
             'kind'
         )
 
+        self.populate_from_matching(
+            'SECTIONS',
+            facade,
+            instance,
+            'primary_sections',
+            first_matching=True,
+            get_or_create_related=self.get_or_create_section_from_name,
+        )
+
         instance.title = facade.title
         instance.save()
 
@@ -126,17 +135,20 @@ class IntegrationTests(TestCase):
             'Article Foo': {
                 'kind':'DEPECHE',
                 'sections': ['FOO', 'FOOBAR', 'FOOBARBAZ'],
-                'weight': 10
+                'weight': 10,
+                'primary_section': 'FOOBARBAZ',
             },
             'Article FooBar': {
                 'kind':'DEPECHE',
                 'sections': ['FOOBAR', 'FOOBARBAZ'],
-                'weight': 20
+                'weight': 20, 
+                'primary_section': 'FOOBARBAZ',
             },
             'Article FooBarBaz': {
                 'kind':'DEPECHE',
                 'sections': ['FOOBARBAZ'],
-                'weight': 30
+                'weight': 30,
+                'primary_section': 'FOOBARBAZ',
             },
         }
 
@@ -151,6 +163,16 @@ class IntegrationTests(TestCase):
             for section in article.sections.all():
                 self.assertIn(section.name, expected_value['sections'])
 
+            self.assertEqual(1, article.primary_sections.count())
+
+            self.assertEqual(
+                expected_value['primary_section'],
+                article.primary_sections.all()[0].name
+            )
+
+            # check that get_or_create works
+            self.assertEqual(3, Section.objects.count())
+
     def test_run_without_command(self):
         """Tests full configuration without command"""
         config = ArticleConfig()
@@ -159,6 +181,7 @@ class IntegrationTests(TestCase):
         self._test_article_created()
 
     def test_run_with_command(self):
+        """Tests full configuration with command"""
         call_command(
             'importomatic',
             'importomatic.tests.integration.ArticleConfig'

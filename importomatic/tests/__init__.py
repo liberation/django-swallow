@@ -12,13 +12,14 @@ class ArticleToSection(models.Model):
     section = models.ForeignKey(Section)
     weight = models.IntegerField()
 
-class Author(models.Model):
-    name = models.CharField(max_length=255)
-
 
 class Article(models.Model):
     title = models.CharField(max_length=255)
     sections = models.ManyToManyField(Section, through=ArticleToSection)
+    primary_sections = models.ManyToManyField(
+        Section,
+        related_name='highlight_set'
+    )
     kind = models.CharField(max_length=255)
 
     def __unicode__(self):
