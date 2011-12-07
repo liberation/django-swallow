@@ -1,7 +1,9 @@
-import os, re, shutil, logging
+import os, re, shutil, logging, traceback
 
 from django.conf import settings
-from django.shortcuts import get_object_or_404
+from django.db.models.fields.related import ManyToManyField
+
+from models import Matching
 
 
 logger = logging.getLogger()
@@ -13,10 +15,11 @@ def log_exception_and_move_file(
         work_file_path,
         error_file_path
     ):
-    msg = '%s failed with %s: %s' % (
+    tb = traceback.format_exc()
+    msg = '%s failed with %s\n%s' % (
         action,
         exception,
-        exception.message
+        tb
     )
     logger.error(msg)
     logger.info('move %s to %s',
@@ -24,7 +27,6 @@ def log_exception_and_move_file(
         error_file_path,
     )
     shutil.move(work_file_path, error_file_path)
-
 
 
 class DefaultConfig(object):
@@ -61,21 +63,21 @@ class DefaultConfig(object):
 
     def match(self, file_path):
         """Filter files, if it returns True, the file is processed"""
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @property
     def model(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @property
     def Facade(self):
         """Facade class used to wrap the file to be processed. Its
         constructor receive the ``file_path`` of file to wrap.
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def process(self, facade, instance):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def run(self):
         """Process recursivly using the BFS algorithm"""
@@ -136,7 +138,7 @@ class DefaultConfig(object):
                             )
 
                         # get or create instance
-                        instance = self.model.objects.get_or_create(
+                        instance, created = self.model.objects.get_or_create(
                             **facade.instance_filters
                         )
 
@@ -163,3 +165,58 @@ class DefaultConfig(object):
             for subdir in dirs:
                 new_path = os.path.join(path, subdir)
                 self.process_recursively(new_path)
+
+    def populate_from_matching(
+            self,
+            matching_name,
+            facade,
+            instance,
+            field_name,
+            first_matching=False,
+            get_or_create_related=None,
+            create_through=None,
+        ):
+
+        # exceptions are catched in ``process_recursively``
+        matching = Matching.objects.get(name=matching_name)
+
+        # fetch field for ``field_name``
+
+        if field_name in instance._meta.get_all_field_names():
+            field = instance._meta.get_field_by_name(field_name)[0]
+        else:
+            msg = 'field %s not found on %s.' % (field_name, instance)
+            raise Exception(msg)
+
+        if isinstance(field, ManyToManyField):
+            # it's a M2M field
+            values = matching.match(facade, first_matching)
+            for value in values:
+                if get_or_create_related is None:
+                    msg = 'Try to set a related  property without '
+                    msg += '``get_or_create_related`` provided.'
+                    raise Exception(msg)
+                else:
+                    related, created = get_or_create_related(
+                        facade,
+                        instance,
+                        value,
+                    )
+                    if created:
+                        related.save()
+                    if create_through is None:
+                        # let's try to add the generic M2M
+                        field = getattr(instance, field_name)
+                        field.add(related)
+                    else:
+                        through = create_through(
+                            related,
+                            instance,
+                            facade,
+                        )
+                        through.save()
+        else:
+            # since it's a property we only need one value
+            # force first_match
+            values = matching.match(facade, first_matching=True)
+            setattr(instance, field_name, values[0])

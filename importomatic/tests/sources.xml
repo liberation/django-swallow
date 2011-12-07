@@ -1,0 +1,18 @@
+<maps>
+    <map>
+        <column>DEPECHE</column>
+        <set>
+          <source loose-compare="yes">Reuters</source>
+          <source loose-compare="yes">AFP</source>
+          <source loose-compare="yes">AP</source>
+        </set>
+    </map>
+    <map>
+        <column>ARTICLE</column>
+        <set>
+          <source loose-compare="yes">Guardian</source>
+          <source loose-compare="yes">Libération</source>
+          <source loose-compare="yes">Le Monde</source>
+        </set>
+    </map>
+</maps>
