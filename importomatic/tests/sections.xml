@@ -1,23 +1,23 @@
 <maps>
     <map>
-        <column>FOOBARBAZ</column>
+        <column>SPORT</column>
         <set>
-          <section>foo</section>
-          <section>foobar</section>
-          <section>foobarbaz</section>
+          <section>ski</section>
+          <section>boxe</section>
+          <section>bilboquet</section>
         </set>
     </map>
     <map>
-        <column>FOOBAR</column>
+        <column>SPORT INDIVIDUEL</column>
         <set>
-          <section>foo</section>
-          <section>foobar</section>
+          <section>ski</section>
+          <section>boxe</section>
         </set>
     </map>
     <map>
-        <column>FOO</column>
+        <column>SPORT DE GLISSE</column>
         <set>
-          <section>foo</section>
+          <section>ski</section>
         </set>
     </map>
 </maps>

@@ -132,23 +132,23 @@ class IntegrationTests(TestCase):
     def _test_article_created(self):
         self.assertEqual(3, Article.objects.count())
         expected_values = {
-            'Article Foo': {
+            'Article Ski': {
                 'kind':'DEPECHE',
-                'sections': ['FOO', 'FOOBAR', 'FOOBARBAZ'],
+                'sections': ['SPORT', 'SPORT INDIVIDUEL', 'SPORT DE GLISSE'],
                 'weight': 10,
-                'primary_section': 'FOOBARBAZ',
+                'primary_section': 'SPORT',
             },
-            'Article FooBar': {
+            'Article Boxe': {
                 'kind':'DEPECHE',
-                'sections': ['FOOBAR', 'FOOBARBAZ'],
+                'sections': ['SPORT', 'SPORT INDIVIDUEL'],
                 'weight': 20, 
-                'primary_section': 'FOOBARBAZ',
+                'primary_section': 'SPORT',
             },
-            'Article FooBarBaz': {
-                'kind':'DEPECHE',
-                'sections': ['FOOBARBAZ'],
+            'Article Bilboquet': {
+                'kind':'ARTICLE',
+                'sections': ['SPORT'],
                 'weight': 30,
-                'primary_section': 'FOOBARBAZ',
+                'primary_section': 'SPORT',
             },
         }
 
