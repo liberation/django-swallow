@@ -160,14 +160,7 @@ class DefaultConfig(object):
             )
         else:
             for item in items:
-                try:
-                    self.process_item(item)
-                except Exception:
-                    # exception already logged
-                    move_file(
-                        work,
-                        error,
-                    )
+                self.process_item(item)
         finally:
             f.close()
 
@@ -185,7 +178,6 @@ class DefaultConfig(object):
                 exception,
                 msg,
             )
-            raise Exception('Could not create instance object for %s' % facade)
         else:
             try:
                 self.process_and_save(facade, instance)
@@ -196,7 +188,6 @@ class DefaultConfig(object):
                     exception,
                     msg,
                 )
-            raise Exception('Could not process %s' % facade)
 
     def populate_from_matching(
             self,
