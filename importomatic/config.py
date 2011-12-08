@@ -165,9 +165,19 @@ class DefaultConfig(object):
             f.close()
 
     def process_item(self, facade):
-        instance, created = self.model.objects.get_or_create(
-            **facade.instance_filters
-        )
+        try:
+            instance, created = self.model.objects.get_or_create(
+                **facade.instance_filters
+            )
+        except Exception, exception:
+            msg = '%s.get_or_create raised %s' % (
+                self.model,
+                exception
+            )
+            log_exception(
+                exception,
+                msg,
+            )
 
         try:
             self.process_and_save(facade, instance)
