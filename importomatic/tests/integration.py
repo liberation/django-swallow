@@ -105,7 +105,7 @@ class IntegrationTests(TestCase):
         shutil.copytree(import_bak, import_dir)
 
         settings.MEDIA_ROOT = '/tmp'
-        settings.IMPORTOMATIC_DIR = os.path.join(CURRENT_PATH, 'import')
+        settings.IMPORTOMATIC_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
 
         matching = Matching(name='SECTIONS')
         f = open(os.path.join(CURRENT_PATH, 'sections.xml'))

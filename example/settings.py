@@ -10,7 +10,7 @@ ADMINS = (
 )
 
 ROOT = os.path.dirname(__file__)
-IMPORTOMATIC_DIR = os.path.join(ROOT, 'import')
+IMPORTOMATIC_DIRECTORY = os.path.join(ROOT, 'import')
 
 MANAGERS = ADMINS
 

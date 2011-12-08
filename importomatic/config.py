@@ -43,27 +43,43 @@ class DefaultConfig(object):
     def input_dir(self):
         """Directory where to looks for new files to process"""
         class_name = type(self).__name__
-        path = os.path.join(settings.IMPORTOMATIC_DIR, class_name, 'input')
+        path = os.path.join(
+            settings.IMPORTOMATIC_DIRECTORY,
+            class_name,
+            'input'
+        )
         return path
 
     @property
     def work_dir(self):
         """Directory where to store files when they are processed"""
         class_name = type(self).__name__
-        path = os.path.join(settings.IMPORTOMATIC_DIR, class_name, 'work')
+        path = os.path.join(
+            settings.IMPORTOMATIC_DIRECTORY,
+            class_name,
+            'work'
+        )
         return path
 
     @property
     def done_dir(self):
         """Directory where to store files after they are processed"""
         class_name = type(self).__name__
-        path = os.path.join(settings.IMPORTOMATIC_DIR, class_name, 'done')
+        path = os.path.join(
+            settings.IMPORTOMATIC_DIRECTORY,
+            class_name,
+            'done'
+        )
         return path
 
     @property
     def error_dir(self):
         class_name = type(self).__name__
-        path = os.path.join(settings.IMPORTOMATIC_DIR, class_name, 'error')
+        path = os.path.join(
+            settings.IMPORTOMATIC_DIRECTORY,
+            class_name,
+            'error'
+        )
         return path
 
     def match(self, file_path):
