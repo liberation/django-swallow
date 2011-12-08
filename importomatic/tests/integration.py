@@ -65,7 +65,7 @@ class ArticleConfig(DefaultConfig):
         through.save()
         return through
 
-    def process(self, facade, instance):
+    def process_and_save(self, facade, instance):
         self.populate_from_matching(
             'SECTIONS',
             facade,

@@ -1,3 +1,4 @@
+from lxml import etree
 import json
 
 
@@ -7,18 +8,18 @@ class BaseFacade(object):
     def instance_filters(self):
         raise NotImplemented()
 
-    def __init__(self, file_path, content):
-        self.content = content
-        self.path = file_path
-
-
 class XmlFacade(BaseFacade):
     """Xml file wrapper to access it's properties passed to
     :meth:`DefaultConfig.populate`"""
 
-    def __init__(self, file_path, content, item):
-        super(XmlFacade, self).__init__(file_path, content)
+    def __init__(self, item):
         self.item = item
+
+    @classmethod
+    def items(cls, file_path, f):
+        xml = etree.parse(f)
+        root = xml.getroot()
+        return [cls(root)]
 
 
 class JsonFacade(BaseFacade):

@@ -74,13 +74,9 @@ class DefaultConfig(object):
     def model(self):
         raise NotImplementedError()
 
-    def items(self, file_path, content):
-        element = etree.fromstring(content)
-        return [element]
-
     Facade = XmlFacade
 
-    def process(self, facade, instance):
+    def process_and_save(self, facade, instance):
         raise NotImplementedError()
 
     def run(self):
@@ -91,96 +87,81 @@ class DefaultConfig(object):
         ))
         self.process_recursively('.')
 
+    def paths(self, path):
+        input = os.path.realpath(os.path.join(self.input_dir, path))
+        work = os.path.realpath(os.path.join(self.work_dir, path))
+        error = os.path.realpath(os.path.join(self.error_dir, path))
+        done = os.path.realpath(os.path.join(self.done_dir, path))
+        return input, work, error, done
+
     def process_recursively(self, path):
         logger.info('process_recursively %s' % path)
 
-        work_path = os.path.realpath(os.path.join(self.work_dir, path))
-        if not os.path.exists(work_path):
-            os.makedirs(work_path)
+        input, work, error, done = self.paths(path)
 
-        error_path = os.path.realpath(os.path.join(self.error_dir, path))
-        if not os.path.exists(error_path):
-            os.makedirs(error_path)
+        if not os.path.exists(work):
+            os.makedirs(work)
+        if not os.path.exists(error):
+            os.makedirs(error)
+        if not os.path.exists(done):
+            os.makedirs(done)
 
-        done_path = os.path.realpath(os.path.join(self.done_dir, path))
-        if not os.path.exists(done_path):
-            os.makedirs(done_path)
+        logger.info( 'work_path %s' % work)
 
-        logger.info( 'work_path %s' % work_path)
-        input_path = os.path.realpath(os.path.join(self.input_dir, path))
-        logger.info('walk %s' % input_path)
-        for root, dirs, files in os.walk(input_path):
-            # process all files in this level
-            for name in files:
-                input_file_path = os.path.join(input_path, name)
+        for file in os.listdir(input):
+            partial_file_path = os.path.join(path, file)
+            input_file_path = os.path.join(input, partial_file_path)
+
+            if os.path.isdir(input_file_path):
+                self.process_recursively(partial_file_path)
+            else:
                 if self.match(input_file_path):
-                    # the file match configuration
-                    logger.info('match %s' % input_file_path)
-
-                    work_file_path = os.path.join(work_path, name)
-                    done_file_path = os.path.join(done_path, name)
-                    error_file_path = os.path.join(error_path, name)
-
-                    # move the file to work dir
+                    logger.info('match %s' % partial_file_path)
                     if not self.dryrun:
-                        move_file(input_file_path, work_file_path)
-                        f = open(work_file_path)
-                        content = f.read()
-                        f.close()
-                        # build facade
-                        file_path = os.path.join(path, name)
+                        self.process_file(path, file)
+                else:
+                    logger.info('failed match for %s' % partial_file_path)
 
-                        try:
-                            items = self.items(file_path, content)
-                        except Exception, exception:
-                            log_exception(
-                                exception,
-                                '%s items generations failed' % file_path
-                            )
-                            move_file(
-                                work_file_path,
-                                error_file_path,
-                            )
-                            continue  # next file
+    def process_file(self, path, name):
+        file_path = os.path.join(path, name)
+        input, work, error, done = self.paths(file_path)
 
-                        for item in items:
-                            try:
-                                facade = self.Facade(file_path, content, item)
-                            except Exception, exception:
-                                msg = '%s Facade creation for %s' % (
-                                    file_path,
-                                    item
-                                )
-                                log_exception(
-                                    exception,
-                                    msg,
-                                )
-                                continue  # next item
+        # move the file to work dir
+        move_file(input, work)
 
-                            # get or create instance
-                            instance, created = self.model.objects.get_or_create(
-                                **facade.instance_filters
-                            )
+        f = open(work)
 
-                            logger.info('process')
-                            try:
-                                self.process(facade, instance)
-                            except Exception, exception:
-                                msg = '%s processing %s' % (
-                                    file_path,
-                                    item
-                                )
-                                log_exception(
-                                    exception,
-                                    msg,
-                                )
-                                continue  # next item
-                            else:
-                                move_file(work_file_path, done_file_path)
-            # recurse!
-            for subdir in dirs:
-                new_path = os.path.join(path, subdir)
-                self.process_recursively(new_path)
+        try:
+            items = self.Facade.items(file_path, f)
+        except Exception, exception:
+            log_exception(
+                exception,
+                'items generations for %s failed' % file_path
+            )
+            move_file(
+                work,
+                error,
+            )
+        else:
+            for item in items:
+                self.process_item(item)
+        finally:
+            f.close()
+
+    def process_item(self, facade):
+        instance, created = self.model.objects.get_or_create(
+            **facade.instance_filters
+        )
+
+        try:
+            self.process_and_save(facade, instance)
+            logger.info('processing %s succeeded' % facade)
+        except Exception, exception:
+            msg = 'processing %s' % facade
+            log_exception(
+                exception,
+                msg,
+            )
 
     def populate_from_matching(
             self,
