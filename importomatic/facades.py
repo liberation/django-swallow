@@ -21,6 +21,12 @@ class XmlFacade(BaseFacade):
         root = xml.getroot()
         return [cls(root)]
 
+    def __getattribute__(self, attribute):
+        try:
+            return super(XmlFacade, self).__getattribute__(attribute)
+        except AttributeError:
+            return self.item.find(attribute)
+
 
 class JsonFacade(BaseFacade):
 
