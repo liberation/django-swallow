@@ -8,6 +8,7 @@ class BaseFacade(object):
     def instance_filters(self):
         raise NotImplemented()
 
+
 class XmlFacade(BaseFacade):
     """Xml file wrapper to access it's properties passed to
     :meth:`DefaultConfig.populate`"""
