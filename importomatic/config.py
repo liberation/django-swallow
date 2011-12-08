@@ -1,32 +1,37 @@
 import os, re, shutil, logging, traceback
 
+from lxml import etree
+
 from django.conf import settings
 from django.db.models.fields.related import ManyToManyField
 
 from models import Matching
+from facades import XmlFacade
 
 
 logger = logging.getLogger()
 
 
-def log_exception_and_move_file(
+def log_exception(
         exception,
         action,
-        work_file_path,
-        error_file_path
     ):
+    """log exception and move file if provided"""
     tb = traceback.format_exc()
     msg = '%s failed with %s\n%s' % (
         action,
         exception,
         tb
     )
-    logger.error(msg)
+    logger.error('%s\n%s' % (msg, tb))
+
+
+def move_file(src, dst):
     logger.info('move %s to %s',
-        work_file_path,
-        error_file_path,
+        src,
+        dst,
     )
-    shutil.move(work_file_path, error_file_path)
+    shutil.move(src, dst)
 
 
 class DefaultConfig(object):
@@ -69,12 +74,11 @@ class DefaultConfig(object):
     def model(self):
         raise NotImplementedError()
 
-    @property
-    def Facade(self):
-        """Facade class used to wrap the file to be processed. Its
-        constructor receive the ``file_path`` of file to wrap.
-        """
-        raise NotImplementedError()
+    def items(self, file_path, content):
+        element = etree.fromstring(content)
+        return [element]
+
+    Facade = XmlFacade
 
     def process(self, facade, instance):
         raise NotImplementedError()
@@ -119,48 +123,60 @@ class DefaultConfig(object):
 
                     # move the file to work dir
                     if not self.dryrun:
-                        shutil.move(input_file_path, work_file_path)
-
+                        move_file(input_file_path, work_file_path)
                         f = open(work_file_path)
-
+                        content = f.read()
+                        f.close()
                         # build facade
                         file_path = os.path.join(path, name)
 
-                        # try/catch
                         try:
-                            facade = self.Facade(file_path, f)
+                            items = self.items(file_path, content)
                         except Exception, exception:
-                            log_exception_and_move_file(
+                            log_exception(
                                 exception,
-                                '%s Facade creation' % file_path,
+                                '%s items generations failed' % file_path
+                            )
+                            move_file(
                                 work_file_path,
                                 error_file_path,
                             )
+                            continue  # next file
 
-                        # get or create instance
-                        instance, created = self.model.objects.get_or_create(
-                            **facade.instance_filters
-                        )
+                        for item in items:
+                            try:
+                                facade = self.Facade(file_path, content, item)
+                            except Exception, exception:
+                                msg = '%s Facade creation for %s' % (
+                                    file_path,
+                                    item
+                                )
+                                log_exception(
+                                    exception,
+                                    msg,
+                                )
+                                continue  # next item
 
-                        logger.info('process')
-                        try:
-                            self.process(facade, instance)
-                        except Exception, exception:
-                            log_exception_and_move_file(
-                                exception,
-                                '%s processing' % file_path,
-                                work_file_path,
-                                error_file_path,
+                            # get or create instance
+                            instance, created = self.model.objects.get_or_create(
+                                **facade.instance_filters
                             )
-                        else:
-                            logger.info('move %s to %s' % (
-                                work_file_path,
-                                done_file_path,
-                            ))
-                            shutil.move(work_file_path, done_file_path)
-                        finally:
-                            f.close()
-                            logger.info('close')
+
+                            logger.info('process')
+                            try:
+                                self.process(facade, instance)
+                            except Exception, exception:
+                                msg = '%s processing %s' % (
+                                    file_path,
+                                    item
+                                )
+                                log_exception(
+                                    exception,
+                                    msg,
+                                )
+                                continue  # next item
+                            else:
+                                move_file(work_file_path, done_file_path)
             # recurse!
             for subdir in dirs:
                 new_path = os.path.join(path, subdir)

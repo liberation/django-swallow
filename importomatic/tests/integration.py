@@ -1,5 +1,7 @@
 import os, shutil
 
+from lxml import etree
+
 from django.test import TestCase
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -23,19 +25,19 @@ class ArticleFacade(XmlFacade):
 
     @property
     def title(self):
-        return self.xml.find('//title').text
+        return self.item.find('title').text
 
     @property
     def source(self):
-        return self.xml.find('//source').text
+        return self.item.find('source').text
 
     @property
     def weight(self):
-        return self.xml.find('//weight').text
+        return self.item.find('weight').text
 
     @property
     def section(self):
-        return self.xml.find('//section').text
+        return self.item.find('section').text
 
 
 class ArticleConfig(DefaultConfig):
@@ -102,11 +104,8 @@ class IntegrationTests(TestCase):
         import_bak = os.path.join(CURRENT_PATH, 'import.bak')
         shutil.copytree(import_bak, import_dir)
 
-
         settings.MEDIA_ROOT = '/tmp'
         settings.IMPORTOMATIC_DIR = os.path.join(CURRENT_PATH, 'import')
-
-        call_command('syncdb')
 
         matching = Matching(name='SECTIONS')
         f = open(os.path.join(CURRENT_PATH, 'sections.xml'))
@@ -117,7 +116,6 @@ class IntegrationTests(TestCase):
             ContentFile(content),
             save=True
         )
-
 
         matching = Matching(name='SOURCES')
         f = open(os.path.join(CURRENT_PATH, 'sources.xml'))
