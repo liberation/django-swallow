@@ -43,6 +43,6 @@ class XmlFacade(BaseFacade):
 
 class JsonFacade(BaseFacade):
 
-    def __init__(self, path, file):
-        super(JsonFacade, self).__init__(path, file)
-        self.json = json.load(file)
+    def __init__(self, file_path, content, item):
+        super(JsonFacade, self).__init__(file_path, content)
+        self.item
