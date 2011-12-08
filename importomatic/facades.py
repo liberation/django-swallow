@@ -20,26 +20,6 @@ class XmlFacade(BaseFacade):
         super(XmlFacade, self).__init__(file_path, content)
         self.item = item
 
-    def get_value(self, node, path, nsmap):
-        """Attempts to retrieve either the node text or node attribute
-        specified."""
-        if '@' in path:
-            if path.count('@') > 1:
-                msg = "You have more than one attribute accessor."
-                raise ValueError(msg)
-            path, attr = path.rsplit('.@')
-            node = node.find(path, namespaces=nsmap)
-            resolved = node.attrib.get(attr, "")
-        else:
-            if path == ".":
-                # this will get text in an XML node, regardless of placement
-                texts = [text.strip() for text in node.xpath("text()")]
-                resolved = ''.join(texts)
-            else:
-                nval = node.find(path, namespaces=nsmap)
-                resolved = nval.text if nval is not None else ""
-        return resolved.strip()
-
 
 class JsonFacade(BaseFacade):
 
