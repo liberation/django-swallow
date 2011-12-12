@@ -154,6 +154,7 @@ class DefaultConfig(object):
                 exception,
                 'items generations for %s failed' % file_path
             )
+            f.close()
             move_file(
                 work,
                 error,
@@ -161,8 +162,11 @@ class DefaultConfig(object):
         else:
             for item in items:
                 self.process_item(item)
-        finally:
             f.close()
+            move_file(
+                work,
+                done,
+            )
 
     def process_item(self, facade):
         # get or create without saving
