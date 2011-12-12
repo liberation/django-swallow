@@ -27,7 +27,7 @@ class XmlFacade(BaseFacade):
         try:
             return super(XmlFacade, self).__getattribute__(attribute)
         except AttributeError:
-            return self.item.find(attribute)
+            return self.item.find(attribute).text
 
     def __str__(self):
         return '<%s %s>' % (type(self).__name__, self.path)
