@@ -167,6 +167,7 @@ class DefaultConfig(object):
                 work,
                 done,
             )
+            logger.info('processing succeeded')
 
     def process_item(self, facade):
         # get or create without saving
