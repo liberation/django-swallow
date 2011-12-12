@@ -165,29 +165,22 @@ class DefaultConfig(object):
             f.close()
 
     def process_item(self, facade):
+        # get or create without saving
         try:
-            instance, created = self.model.objects.get_or_create(
+            instance = self.model.objects.get(
                 **facade.instance_filters
             )
+        except self.model.DoesNotExist:
+            instance = self.model(**facade.instance_filters)
+        try:
+            self.process_and_save(facade, instance)
+            logger.info('processing %s succeeded' % facade)
         except Exception, exception:
-            msg = '%s.get_or_create raised %s' % (
-                self.model,
-                exception
-            )
+            msg = 'processing %s' % facade
             log_exception(
                 exception,
                 msg,
             )
-        else:
-            try:
-                self.process_and_save(facade, instance)
-                logger.info('processing %s succeeded' % facade)
-            except Exception, exception:
-                msg = 'processing %s' % facade
-                log_exception(
-                    exception,
-                    msg,
-                )
 
     def populate_from_matching(
             self,
