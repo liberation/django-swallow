@@ -37,8 +37,8 @@ class XmlFacade(BaseFacade):
 
 
 class JsonFacade(BaseFacade):
+    # FIXME: implement items method
 
     def __init__(self, file_path, content, item):
         super(JsonFacade, self).__init__(file_path, content)
-        self.item
-
+        self.item = item
