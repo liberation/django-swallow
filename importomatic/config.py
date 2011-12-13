@@ -1,11 +1,10 @@
-import os, re, shutil, logging, traceback
-
-from lxml import etree
+import os
+import shutil
+import logging
+import traceback
 
 from django.conf import settings
-from django.db.models.fields.related import ManyToManyField
 
-from models import Matching
 from facades import XmlFacade
 
 
@@ -122,7 +121,7 @@ class DefaultConfig(object):
         if not os.path.exists(done):
             os.makedirs(done)
 
-        logger.info( 'work_path %s' % work)
+        logger.info('work_path %s' % work)
 
         for file in os.listdir(input):
             partial_file_path = os.path.join(path, file)
@@ -198,58 +197,3 @@ class DefaultConfig(object):
                 exception,
                 msg,
             )
-
-    def populate_from_matching(
-            self,
-            matching_name,
-            facade,
-            instance,
-            field_name,
-            first_matching=False,
-            get_or_create_related=None,
-            create_through=None,
-        ):
-
-        # exceptions are catched in ``process_recursively``
-        matching = Matching.objects.get(name=matching_name)
-
-        # fetch field for ``field_name``
-
-        if field_name in instance._meta.get_all_field_names():
-            field = instance._meta.get_field_by_name(field_name)[0]
-        else:
-            msg = 'field %s not found on %s.' % (field_name, instance)
-            raise Exception(msg)
-
-        if isinstance(field, ManyToManyField):
-            # it's a M2M field
-            values = matching.match(facade, first_matching)
-            for value in values:
-                if get_or_create_related is None:
-                    msg = 'Try to set a related  property without '
-                    msg += '``get_or_create_related`` provided.'
-                    raise Exception(msg)
-                else:
-                    related, created = get_or_create_related(
-                        facade,
-                        instance,
-                        value,
-                    )
-                    if created:
-                        related.save()
-                    if create_through is None:
-                        # let's try to add the generic M2M
-                        field = getattr(instance, field_name)
-                        field.add(related)
-                    else:
-                        through = create_through(
-                            related,
-                            instance,
-                            facade,
-                        )
-                        through.save()
-        else:
-            # since it's a property we only need one value
-            # force first_match
-            values = matching.match(facade, first_matching=True)
-            setattr(instance, field_name, values[0])
