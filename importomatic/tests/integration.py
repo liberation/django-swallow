@@ -49,7 +49,7 @@ class ArticlePopulator(BasePopulator):
     def _item_is_modified(self, facade, instance):
         return instance.publication_date == instance.update_date
 
-    def sources(self, facade, instance):
+    def sources(self):
         self.populate_from_matching(
             'SOURCES',
             facade,
@@ -57,7 +57,7 @@ class ArticlePopulator(BasePopulator):
             'kind'
         )
 
-    def sections(self, facade, instance):
+    def sections(self):
         self.populate_from_matching(
             'SECTIONS',
             facade,
@@ -67,7 +67,7 @@ class ArticlePopulator(BasePopulator):
             get_or_create_related=self.get_or_create_section_from_name,
         )
 
-    def primary_section(sef, facade, instance):
+    def primary_section(self):
        self.populate_from_matching(
             'SECTIONS',
             facade,
@@ -115,7 +115,6 @@ class IntegrationTests(TestCase):
 
         settings.MEDIA_ROOT = '/tmp'
         settings.IMPORTOMATIC_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
-
         matching = Matching(name='SECTIONS')
         f = open(os.path.join(CURRENT_PATH, 'sections.xml'))
         content = f.read()
