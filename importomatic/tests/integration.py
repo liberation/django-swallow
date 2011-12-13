@@ -67,6 +67,14 @@ class ArticleConfig(DefaultConfig):
 
     def process_and_save(self, facade, instance):
         instance.title = facade.title
+
+        self.populate_from_matching(
+            'SOURCES',
+            facade,
+            instance,
+            'kind'
+        )
+
         instance.save()
 
         self.populate_from_matching(
@@ -79,13 +87,6 @@ class ArticleConfig(DefaultConfig):
         )
 
         self.populate_from_matching(
-            'SOURCES',
-            facade,
-            instance,
-            'kind'
-        )
-
-        self.populate_from_matching(
             'SECTIONS',
             facade,
             instance,
@@ -94,8 +95,8 @@ class ArticleConfig(DefaultConfig):
             get_or_create_related=self.get_or_create_section_from_name,
         )
 
-        instance.save()
-
+        # no need to save since both primary_sections and sections
+        # are m2m fields
 
 
 class IntegrationTests(TestCase):
