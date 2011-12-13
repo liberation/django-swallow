@@ -9,12 +9,12 @@ from django.core.management import call_command
 
 from importomatic.config import DefaultConfig
 from importomatic.facades import XmlFacade
-
+from importomatic.populator import BasePopulator
 from importomatic.models import Matching
 from importomatic.tests import Section, Article, ArticleToSection
 
-CURRENT_PATH = os.path.dirname(__file__)
 
+CURRENT_PATH = os.path.dirname(__file__)
 
 
 class ArticleFacade(XmlFacade):
@@ -40,11 +40,49 @@ class ArticleFacade(XmlFacade):
         return self.item.find('section').text
 
 
+class ArticlePopulator(BasePopulator):
+
+    _one_to_one = ['title']
+    _always_update = ['title']
+    _update_if_object_not_modified = ['kind']
+
+    def _item_is_modified(self, facade, instance):
+        return instance.publication_date == instance.update_date
+
+    def sources(self, facade, instance):
+        self.populate_from_matching(
+            'SOURCES',
+            facade,
+            instance,
+            'kind'
+        )
+
+    def sections(self, facade, instance):
+        self.populate_from_matching(
+            'SECTIONS',
+            facade,
+            instance,
+            'sections',
+            create_through=self.create_article_to_section,
+            get_or_create_related=self.get_or_create_section_from_name,
+        )
+
+    def primary_section(sef, facade, instance):
+       self.populate_from_matching(
+            'SECTIONS',
+            facade,
+            instance,
+            'primary_sections',
+            first_matching=True,
+            get_or_create_related=self.get_or_create_section_from_name,
+        )
+
+
 class ArticleConfig(DefaultConfig):
 
     model = Article
-
     Facade = ArticleFacade
+    Populator = ArticlePopulator
 
     def match(self, f):
         return f.endswith('.xml') and not f.startswith('.')
@@ -64,39 +102,6 @@ class ArticleConfig(DefaultConfig):
         )
         through.save()
         return through
-
-    def process_and_save(self, facade, instance):
-        instance.title = facade.title
-
-        self.populate_from_matching(
-            'SOURCES',
-            facade,
-            instance,
-            'kind'
-        )
-
-        instance.save()
-
-        self.populate_from_matching(
-            'SECTIONS',
-            facade,
-            instance,
-            'sections',
-            create_through=self.create_article_to_section,
-            get_or_create_related=self.get_or_create_section_from_name,
-        )
-
-        self.populate_from_matching(
-            'SECTIONS',
-            facade,
-            instance,
-            'primary_sections',
-            first_matching=True,
-            get_or_create_related=self.get_or_create_section_from_name,
-        )
-
-        # no need to save since both primary_sections and sections
-        # are m2m fields
 
 
 class IntegrationTests(TestCase):
