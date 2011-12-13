@@ -66,6 +66,9 @@ class ArticleConfig(DefaultConfig):
         return through
 
     def process_and_save(self, facade, instance):
+        instance.title = facade.title
+        instance.save()
+
         self.populate_from_matching(
             'SECTIONS',
             facade,
@@ -91,8 +94,8 @@ class ArticleConfig(DefaultConfig):
             get_or_create_related=self.get_or_create_section_from_name,
         )
 
-        instance.title = facade.title
         instance.save()
+
 
 
 class IntegrationTests(TestCase):
