@@ -81,6 +81,10 @@ class DefaultConfig(object):
         )
         return path
 
+    @property
+    def Populator(self):
+        return NotImplementedError()
+
     def match(self, file_path):
         """Filter files, if it returns True, the file is processed"""
         raise NotImplementedError()
@@ -92,7 +96,8 @@ class DefaultConfig(object):
     Facade = XmlFacade
 
     def process_and_save(self, facade, instance):
-        raise NotImplementedError()
+        populator = self.Populator(facade, instance)
+        populator._run()
 
     def run(self):
         """Process recursivly using the BFS algorithm"""
@@ -190,10 +195,13 @@ class DefaultConfig(object):
             instance = self.model(**facade.instance_filters)
         try:
             self.process_and_save(facade, instance)
-            logger.info('processing %s succeeded' % facade)
         except Exception, exception:
             msg = 'processing %s' % facade
             log_exception(
                 exception,
                 msg,
             )
+        except:
+            import pdb; pdb.set_trace()
+        else:
+            logger.info('processing %s succeeded' % facade)

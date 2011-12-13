@@ -42,50 +42,35 @@ class ArticleFacade(XmlFacade):
 
 class ArticlePopulator(BasePopulator):
 
+    _never_populate = ['publication_date', 'update_date']
     _one_to_one = ['title']
     _always_update = ['title']
     _update_if_object_not_modified = ['kind']
 
-    def _item_is_modified(self, facade, instance):
-        return instance.publication_date == instance.update_date
+    def _modified(self):
+        return self.instance.publication_date != self.instance.update_date
 
-    def sources(self):
-        self.populate_from_matching(
+    def kind(self):
+        self._from_matching(
             'SOURCES',
-            facade,
-            instance,
             'kind'
         )
 
     def sections(self):
-        self.populate_from_matching(
+        self._from_matching(
             'SECTIONS',
-            facade,
-            instance,
             'sections',
             create_through=self.create_article_to_section,
             get_or_create_related=self.get_or_create_section_from_name,
         )
 
-    def primary_section(self):
-       self.populate_from_matching(
+    def primary_sections(self):
+        self._from_matching(
             'SECTIONS',
-            facade,
-            instance,
             'primary_sections',
             first_matching=True,
             get_or_create_related=self.get_or_create_section_from_name,
         )
-
-
-class ArticleConfig(DefaultConfig):
-
-    model = Article
-    Facade = ArticleFacade
-    Populator = ArticlePopulator
-
-    def match(self, f):
-        return f.endswith('.xml') and not f.startswith('.')
 
     @staticmethod
     def get_or_create_section_from_name(facade, instance, value):
@@ -102,6 +87,16 @@ class ArticleConfig(DefaultConfig):
         )
         through.save()
         return through
+
+
+class ArticleConfig(DefaultConfig):
+
+    model = Article
+    Facade = ArticleFacade
+    Populator = ArticlePopulator
+
+    def match(self, f):
+        return f.endswith('.xml') and not f.startswith('.')
 
 
 class IntegrationTests(TestCase):
