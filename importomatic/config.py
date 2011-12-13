@@ -160,14 +160,26 @@ class DefaultConfig(object):
                 error,
             )
         else:
-            for item in items:
-                self.process_item(item)
-            f.close()
-            move_file(
-                work,
-                done,
-            )
-            logger.info('processing succeeded')
+            try:
+                for item in items:
+                    self.process_item(item)
+            except Exception, exception:
+                log_exception(
+                    exception,
+                    'items generations for %s failed' % file_path
+                )
+                f.close()
+                move_file(
+                    work,
+                    error,
+                )
+            else:
+                f.close()
+                move_file(
+                    work,
+                    done,
+                )
+                logger.info('processing succeeded')
 
     def process_item(self, facade):
         # get or create without saving
