@@ -201,7 +201,5 @@ class DefaultConfig(object):
                 exception,
                 msg,
             )
-        except:
-            import pdb; pdb.set_trace()
         else:
             logger.info('processing %s succeeded' % facade)
