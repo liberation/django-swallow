@@ -23,22 +23,6 @@ class ArticleFacade(XmlFacade):
     def instance_filters(self):
         return {'title': self.title}
 
-    @property
-    def title(self):
-        return self.item.find('title').text
-
-    @property
-    def source(self):
-        return self.item.find('source').text
-
-    @property
-    def weight(self):
-        return self.item.find('weight').text
-
-    @property
-    def section(self):
-        return self.item.find('section').text
-
 
 class ArticlePopulator(BasePopulator):
 
