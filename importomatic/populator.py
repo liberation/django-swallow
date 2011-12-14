@@ -114,6 +114,10 @@ class BasePopulator(object):
         for field in self.instance._meta.many_to_many:
             if (field.name not in self._never_populate and
                 (not modified or field.name in fields_to_update)):
+                if self.instance.id is not None:
+                    # reset m2m
+                    f = getattr(self.instance, field.name)
+                    f.all().delete()
                 # m2m are always populated by populator methods
                 method = getattr(self, field.name)
                 method()
