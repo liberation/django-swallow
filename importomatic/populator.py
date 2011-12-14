@@ -106,7 +106,7 @@ class BasePopulator(object):
                     else:
                         # it's a populator method
                         method = getattr(self, field_name)
-                        value = method()
+                        method()
 
         # save to be able to populate m2m fields
         self.instance.save()
