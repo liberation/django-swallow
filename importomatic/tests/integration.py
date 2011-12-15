@@ -24,13 +24,17 @@ class ArticleFacade(XmlFacade):
     def instance_filters(self):
         return {'title': self.title}
 
+    @property
+    def modified_by(self):
+        return 'importomatic'
+
 
 class ArticlePopulator(BasePopulator):
 
-    _fields_one_to_one = ('title', 'author')
+    _fields_one_to_one = ('title', 'author', 'modified_by')
     _fields_if_instance_already_exists = (
         'sections',
-        'primary_sections'
+        'primary_sections',
         'kind',
         'author',
     )
@@ -87,7 +91,10 @@ class ArticleConfig(DefaultConfig):
         return f.endswith('.xml') and not f.startswith('.')
 
     def instance_is_modified(self, instance):
-        return instance.modified_by != 'importomatic'
+        if instance.modified_by is None:
+            return False
+        else:
+            return instance.modified_by != 'importomatic'
 
 
 expected_values_initial = {
@@ -122,6 +129,12 @@ expected_values_after_update['Article Boxe']['author'] = 'MrF'
 expected_values_after_update['Article Bilboquet']['weight'] = 300
 expected_values_after_update['Article Bilboquet']['author'] = 'MrF'
 expected_values_after_update['Article Bilboquet']['sections'] = ['FUN']
+expected_values_after_update['Article Bilboquet']['primary_section'] = 'FUN'
+
+expected_values_after_update_with_modification = copy.deepcopy(expected_values_after_update)
+expected_values_after_update_with_modification['Article Ski']['author'] = 'godzilla'
+expected_values_after_update_with_modification['Article Boxe']['author'] = 'godzilla'
+expected_values_after_update_with_modification['Article Bilboquet']['author'] = 'godzilla'
 
 
 class IntegrationTests(TestCase):
@@ -155,7 +168,7 @@ class IntegrationTests(TestCase):
             save=True
         )
 
-    def _test_article_created(self, expected_values):
+    def _test_articles(self, expected_values):
         self.assertEqual(3, Article.objects.count())
 
         for article in Article.objects.all():
@@ -179,7 +192,6 @@ class IntegrationTests(TestCase):
                 len(expected_value['sections']),
                 article.sections.count()
             )
-
 
             for section in article.sections.all():
                 self.assertIn(section.name, expected_value['sections'])
@@ -211,7 +223,7 @@ class IntegrationTests(TestCase):
         config = ArticleConfig()
         config.run()
 
-        self._test_article_created(expected_values_initial)
+        self._test_articles(expected_values_initial)
 
     def test_run_with_update(self):
         config = ArticleConfig()
@@ -223,7 +235,24 @@ class IntegrationTests(TestCase):
         # second import
         config.run()
 
-        self._test_article_created(expected_values_after_update)
+        self._test_articles(expected_values_after_update)
+
+    def test_run_with_update_and_modification(self):
+        config = ArticleConfig()
+        config.run()
+
+        # modify Articles
+        for article in Article.objects.all():
+            article.modified_by = 'user'
+            article.author = 'godzilla'
+            article.save()
+
+        self._update_imports()
+
+        # second import
+        config.run()
+
+        self._test_articles(expected_values_after_update_with_modification)
 
     def test_run_with_command(self):
         """Tests full configuration with command"""
@@ -232,4 +261,4 @@ class IntegrationTests(TestCase):
             'importomatic.tests.integration.ArticleConfig'
         )
 
-        self._test_article_created(expected_values_initial)
+        self._test_articles(expected_values_initial)
