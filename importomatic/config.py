@@ -4,6 +4,7 @@ import logging
 import traceback
 
 from django.conf import settings
+from django.db.models.fields import AutoField
 
 from facades import XmlFacade
 
@@ -206,4 +207,36 @@ class DefaultConfig(object):
     def process_and_save(self, facade, instance):
         modified = self.instance_is_modified(instance)
         populator = self.Populator(facade, instance, modified)
-        populator._run()
+
+        for field in instance._meta.fields:
+            if isinstance(field, AutoField):
+                # can't set auto field
+                pass
+            else:
+                if populator._to_set(field.name):
+                    if field.name in populator._fields_one_to_one:
+                        # it's a facade property
+                        value = getattr(facade, field.name)
+                        setattr(instance, field.name, value)
+                    else:
+                        # it may be a populator method
+                        method = getattr(populator, field.name, None)
+                        if method is not None:
+                            method()
+                        # else this field doesn't need to be populated
+
+        # save to be able to populate m2m fields
+        instance.save()
+
+        # populate m2m fields
+        for field in instance._meta.many_to_many:
+            if populator._to_set(field.name):
+                # m2m are always populated by populator methods
+                method = getattr(populator, field.name, None)
+                if method is not None:
+                    # reset m2m
+                    f = getattr(instance, field.name)
+                    f.clear()  # XXX: add a hook to overide this behaviour
+                    method()
+                # else ``method`` is not set no need to set this field
+        # that's all folks :)

@@ -1,7 +1,6 @@
 from models import Matching
 
 from django.db.models.fields.related import ManyToManyField
-from django.db.models.fields import AutoField
 
 
 class BasePopulator(object):
@@ -128,37 +127,3 @@ class BasePopulator(object):
         else:
             return True
         return False
-
-    def _run(self):
-        for field in self._instance._meta.fields:
-            if isinstance(field, AutoField):
-                # can't set auto field
-                pass
-            else:
-                if self._to_set(field.name):
-                    if field.name in self._fields_one_to_one:
-                        # it's a facade property
-                        value = getattr(self._facade, field.name)
-                        setattr(self._instance, field.name, value)
-                    else:
-                        # it may be a populator method
-                        method = getattr(self, field.name, None)
-                        if method is not None:
-                            method()
-                        # else this field doesn't need to be populated
-
-        # save to be able to populate m2m fields
-        self._instance.save()
-
-        # populate m2m fields
-        for field in self._instance._meta.many_to_many:
-            if self._to_set(field.name):
-                # m2m are always populated by populator methods
-                method = getattr(self, field.name, None)
-                if method is not None:
-                    # reset m2m
-                    f = getattr(self._instance, field.name)
-                    f.clear()  # XXX: add a hook to overide this behaviour
-                    method()
-                # else ``method`` is not set no need to set this field
-        # that's all folks :)
