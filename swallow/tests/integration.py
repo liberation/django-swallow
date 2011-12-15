@@ -6,11 +6,11 @@ from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.db.models import Count
 
-from importomatic.config import DefaultConfig
-from importomatic.facades import XmlFacade
-from importomatic.populator import BasePopulator
-from importomatic.models import Matching
-from importomatic.tests import Section, Article, ArticleToSection
+from swallow.config import DefaultConfig
+from swallow.facades import XmlFacade
+from swallow.populator import BasePopulator
+from swallow.models import Matching
+from swallow.tests import Section, Article, ArticleToSection
 
 
 CURRENT_PATH = os.path.dirname(__file__)
@@ -24,7 +24,7 @@ class ArticleFacade(XmlFacade):
 
     @property
     def modified_by(self):
-        return 'importomatic'
+        return 'swallow'
 
 
 class ArticlePopulator(BasePopulator):
@@ -91,7 +91,7 @@ class ArticleConfig(DefaultConfig):
         if instance.modified_by is None:
             return False
         else:
-            return instance.modified_by != 'importomatic'
+            return instance.modified_by != 'swallow'
 
 
 expected_values_initial = {
@@ -144,13 +144,13 @@ class IntegrationTests(TestCase):
         shutil.copytree(import_bak, import_dir)
 
         settings.MEDIA_ROOT = '/tmp'
-        settings.IMPORTOMATIC_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
+        settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
         matching = Matching(name='SECTIONS')
         f = open(os.path.join(CURRENT_PATH, 'sections.xml'))
         content = f.read()
         f.close()
         matching.file.save(
-            'importomatic/sections.xml',
+            'swallow/sections.xml',
             ContentFile(content),
             save=True
         )
@@ -160,7 +160,7 @@ class IntegrationTests(TestCase):
         content = f.read()
         f.close()
         matching.file.save(
-            'importomatic/sources.xml',
+            'swallow/sources.xml',
             ContentFile(content),
             save=True
         )
@@ -254,8 +254,8 @@ class IntegrationTests(TestCase):
     def test_run_with_command(self):
         """Tests full configuration with command"""
         call_command(
-            'importomatic',
-            'importomatic.tests.integration.ArticleConfig'
+            'swallow',
+            'swallow.tests.integration.ArticleConfig'
         )
 
         self._test_articles(expected_values_initial)

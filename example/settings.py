@@ -10,7 +10,7 @@ ADMINS = (
 )
 
 ROOT = os.path.dirname(__file__)
-IMPORTOMATIC_DIRECTORY = os.path.join(ROOT, 'import')
+SWALLOW_DIRECTORY = os.path.join(ROOT, 'import')
 
 MANAGERS = ADMINS
 
@@ -118,7 +118,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'example',
-    'importomatic',
+    'swallow',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

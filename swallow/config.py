@@ -46,7 +46,7 @@ class DefaultConfig(object):
         """Directory where to looks for new files to process"""
         class_name = type(self).__name__
         path = os.path.join(
-            settings.IMPORTOMATIC_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'input'
         )
@@ -57,7 +57,7 @@ class DefaultConfig(object):
         """Directory where to store files when they are processed"""
         class_name = type(self).__name__
         path = os.path.join(
-            settings.IMPORTOMATIC_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'work'
         )
@@ -68,7 +68,7 @@ class DefaultConfig(object):
         """Directory where to store files after they are processed"""
         class_name = type(self).__name__
         path = os.path.join(
-            settings.IMPORTOMATIC_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'done'
         )
@@ -81,7 +81,7 @@ class DefaultConfig(object):
     def error_dir(self):
         class_name = type(self).__name__
         path = os.path.join(
-            settings.IMPORTOMATIC_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'error'
         )

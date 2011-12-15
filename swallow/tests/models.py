@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.conf import settings
 
-from importomatic.models import Matching
+from swallow.models import Matching
 
 
 xml = """

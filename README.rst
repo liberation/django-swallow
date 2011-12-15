@@ -1,16 +1,15 @@
-===================
-Django Importomatic
-===================
+==============
+Django Swallow
+==============
 
-Kesako Django Importomatic
-==========================
+Kesako Django Swallow
+=====================
 
-Utility django application that helps building import scripts for your project.
-
+Make your django project able to import XMLs in an easily configurable way.
 
 Configuration
 =============
 
 In django settings define the following constants:
 
-- ``IMPORTOMATIC_DIR`` Directory used by the application to store files
+- ``SWALLOW_DIRECTORY`` Directory used by the application to store files
