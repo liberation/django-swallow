@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
+from django.db.models import Count
 
 from importomatic.config import DefaultConfig
 from importomatic.facades import XmlFacade
@@ -120,6 +121,7 @@ expected_values_after_update['Article Boxe']['weight'] = 200
 expected_values_after_update['Article Boxe']['author'] = 'MrF'
 expected_values_after_update['Article Bilboquet']['weight'] = 300
 expected_values_after_update['Article Bilboquet']['author'] = 'MrF'
+expected_values_after_update['Article Bilboquet']['sections'] = ['FUN']
 
 
 class IntegrationTests(TestCase):
@@ -190,8 +192,12 @@ class IntegrationTests(TestCase):
                 article.primary_sections.all()[0].name
             )
 
-        # The overal count of sections is 3 check that get_or_create works
-        self.assertEqual(3, Section.objects.count())
+        self._test_no_multiple_insert_of_sections()
+
+    def _test_no_multiple_insert_of_sections(self):
+        aggregates = Section.objects.values('name').annotate(count=Count('name'))
+        for aggregate in aggregates:
+            self.assertEqual(1, aggregate['count'])
 
     def _update_imports(self):
         # simulate an update
