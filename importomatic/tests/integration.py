@@ -1,7 +1,5 @@
 import os, shutil, copy
 
-from lxml import etree
-
 from django.test import TestCase
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -71,7 +69,6 @@ class ArticlePopulator(BasePopulator):
         return section, created
 
     def create_article_to_section(self, section):
-        weight = self._facade.weight
         through = ArticleToSection(
             article=self._instance,
             section=section,

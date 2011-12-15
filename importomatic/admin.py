@@ -3,4 +3,6 @@ from models import Matching
 
 class MatchingAdmin(admin.ModelAdmin):
     pass
+
+
 admin.site.register(Matching, MatchingAdmin)

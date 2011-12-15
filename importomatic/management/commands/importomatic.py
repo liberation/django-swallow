@@ -1,7 +1,7 @@
 from optparse import make_option
 
 from django.utils.importlib import import_module
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

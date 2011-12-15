@@ -12,9 +12,9 @@ def normalize(string):
 
 class Matching(models.Model):
     """Represents a matching file. A matching file is an xml file (really)
-    that let you build matching rules for your 
+    that let you build matching rules for your
     :class:`importomatic.facades.BaseFacade` class used in ``process``
-    through :meth:`importomatic.config.DefaultConfig.populate_from_matching`.
+    through :meth:`importomatic.config.DefaultConfig.populate_from_matching`
 
     See also :meth:`importomatic.models.Matching.match`.
 
@@ -50,7 +50,6 @@ class Matching(models.Model):
 
         (facade.title == "foo" or facade.title == "bar") and facade.suptitle == "baz"
 
-    
     See also :meth:`importomatic.models.Matching.match`.
     """
 
@@ -129,7 +128,7 @@ class Matching(models.Model):
                         return [column]
 
                     matched_set = True
-                    break # no need to try another set
+                    break  # no need to try another set
             if matched_set:
                 output.append(column)
         return output

@@ -7,6 +7,7 @@ class Section(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class ArticleToSection(models.Model):
     article = models.ForeignKey('Article')
     section = models.ForeignKey(Section)

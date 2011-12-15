@@ -20,7 +20,8 @@ class BasePopulator(object):
             _fields_if_instance_modified_from_last_import = None
 
     This class will threat creation, update and update of modified instance
-    the same way by populating every field with the value set in the the facade.
+    the same way by populating every field with the value set in the the
+    facade.
     """
 
 

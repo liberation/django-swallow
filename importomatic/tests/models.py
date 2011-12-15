@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import tempfile
 from collections import namedtuple
 
 from django.core.files.base import ContentFile
@@ -60,7 +59,11 @@ class MatchingTests(TestCase):
         settings.MEDIA_ROOT = '/tmp'
 
         matching = Matching(name='TEST')
-        matching.file.save('importomatic/test.xml', ContentFile(xml), save=True)
+        matching.file.save(
+            'importomatic/test.xml',
+            ContentFile(xml),
+            save=True
+        )
         cls.matching = matching
 
     def test_match_1(self):
