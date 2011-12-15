@@ -114,11 +114,15 @@ class BasePopulator(object):
     def _to_set(self, field_name):
         """Compute whether the field should be set"""
         if self._updating:
-            if self._modified:
+            if not self._modified:
+                if self._fields_if_instance_already_exists is None:
+                    return True
                 if field_name in self._fields_if_instance_already_exists:
                     return True
             else:
-                if field_name in self._update_if_object_not_modified:
+                if self._fields_if_instance_modified_from_last_import is None:
+                    return True
+                if field_name in self._fields_if_instance_modified_from_last_import:
                     return True
         else:
             return True
