@@ -125,8 +125,6 @@ class BasePopulator(object):
         return False
 
     def _run(self):
-        fields_to_update = list(self._always_update)
-
         for field in self._instance._meta.fields:
             if isinstance(field, AutoField):
                 # can't set auto field
