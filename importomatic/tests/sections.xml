@@ -8,6 +8,12 @@
         </set>
     </map>
     <map>
+        <column>FUN</column>
+        <set>
+          <section>fun</section>
+        </set>
+    </map>
+    <map>
         <column>SPORT INDIVIDUEL</column>
         <set>
           <section>ski</section>
