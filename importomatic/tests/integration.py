@@ -39,9 +39,6 @@ class ArticlePopulator(BasePopulator):
     )
 
 
-    _always_update = ['sections', 'primary_sections']
-    _update_if_object_not_modified = ['kind', 'author']
-
     def kind(self):
         self._from_matching(
             'SOURCES',
