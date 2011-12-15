@@ -35,6 +35,8 @@ def move_file(src, dst):
 
 class DefaultConfig(object):
 
+    Facade = XmlFacade
+
     def __init__(self, dryrun=False):
         self.dryrun = dryrun
 
@@ -71,6 +73,9 @@ class DefaultConfig(object):
         )
         return path
 
+    def instance_is_modified(self, instance):
+        raise NotImplementedError()
+
     @property
     def error_dir(self):
         class_name = type(self).__name__
@@ -92,12 +97,6 @@ class DefaultConfig(object):
     @property
     def model(self):
         raise NotImplementedError()
-
-    Facade = XmlFacade
-
-    def process_and_save(self, facade, instance):
-        populator = self.Populator(facade, instance)
-        populator._run()
 
     def run(self):
         """Process recursivly using the BFS algorithm"""
@@ -170,7 +169,7 @@ class DefaultConfig(object):
             except Exception, exception:
                 log_exception(
                     exception,
-                    'items generations for %s failed' % file_path
+                    'items processing failed'
                 )
                 f.close()
                 move_file(
@@ -203,3 +202,8 @@ class DefaultConfig(object):
             )
         else:
             logger.info('processing %s succeeded' % facade)
+
+    def process_and_save(self, facade, instance):
+        modified = self.instance_is_modified(instance)
+        populator = self.Populator(facade, instance, modified)
+        populator._run()

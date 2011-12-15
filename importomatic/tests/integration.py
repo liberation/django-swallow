@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, copy
 
 from lxml import etree
 
@@ -26,13 +26,21 @@ class ArticleFacade(XmlFacade):
 
 class ArticlePopulator(BasePopulator):
 
-    _never_populate = ['publication_date', 'update_date']
-    _one_to_one = ['title']
-    _always_update = ['title']
-    _update_if_object_not_modified = ['kind']
+    _fields_one_to_one = ('title', 'author')
+    _fields_if_instance_already_exists = (
+        'sections',
+        'primary_sections'
+        'kind',
+        'author',
+    )
+    _fields_if_instance_modified_from_last_import = (
+        'sections',
+        'primary_sections',
+    )
 
-    def _modified(self):
-        return self.instance.publication_date != self.instance.update_date
+
+    _always_update = ['sections', 'primary_sections']
+    _update_if_object_not_modified = ['kind', 'author']
 
     def kind(self):
         self._from_matching(
@@ -56,18 +64,16 @@ class ArticlePopulator(BasePopulator):
             get_or_create_related=self.get_or_create_section_from_name,
         )
 
-    @staticmethod
-    def get_or_create_section_from_name(facade, instance, value):
-        section, created = Section.objects.get_or_create(name=value)
-        section.save()
+    def get_or_create_section_from_name(self, name):
+        section, created = Section.objects.get_or_create(name=name)
         return section, created
 
-    @staticmethod
-    def create_article_to_section(section, article, facade):
+    def create_article_to_section(self, section):
+        weight = self._facade.weight
         through = ArticleToSection(
-            article=article,
+            article=self._instance,
             section=section,
-            weight=facade.weight,
+            weight=self._facade.weight,
         )
         through.save()
         return through
@@ -81,6 +87,42 @@ class ArticleConfig(DefaultConfig):
 
     def match(self, f):
         return f.endswith('.xml') and not f.startswith('.')
+
+    def instance_is_modified(self, instance):
+        return instance.modified_by != 'importomatic'
+
+
+expected_values_initial = {
+    'Article Ski': {
+        'kind':'DEPECHE',
+        'sections': ['SPORT', 'SPORT INDIVIDUEL', 'SPORT DE GLISSE'],
+        'weight': 10,
+        'primary_section': 'SPORT',
+        'author': 'MrFoo',
+    },
+    'Article Boxe': {
+        'kind':'DEPECHE',
+        'sections': ['SPORT', 'SPORT INDIVIDUEL'],
+        'weight': 20, 
+        'primary_section': 'SPORT',
+        'author': 'MrFoo',
+    },
+    'Article Bilboquet': {
+        'kind':'ARTICLE',
+        'sections': ['SPORT'],
+        'weight': 30,
+        'primary_section': 'SPORT',
+        'author': 'MrFoo',
+    },
+}
+
+expected_values_after_update = copy.deepcopy(expected_values_initial)
+expected_values_after_update['Article Ski']['weight'] = 100
+expected_values_after_update['Article Ski']['author'] = 'MrF'
+expected_values_after_update['Article Boxe']['weight'] = 200
+expected_values_after_update['Article Boxe']['author'] = 'MrF'
+expected_values_after_update['Article Bilboquet']['weight'] = 300
+expected_values_after_update['Article Bilboquet']['author'] = 'MrF'
 
 
 class IntegrationTests(TestCase):
@@ -114,40 +156,36 @@ class IntegrationTests(TestCase):
             save=True
         )
 
-    def _test_article_created(self):
+    def _test_article_created(self, expected_values):
         self.assertEqual(3, Article.objects.count())
-        expected_values = {
-            'Article Ski': {
-                'kind':'DEPECHE',
-                'sections': ['SPORT', 'SPORT INDIVIDUEL', 'SPORT DE GLISSE'],
-                'weight': 10,
-                'primary_section': 'SPORT',
-            },
-            'Article Boxe': {
-                'kind':'DEPECHE',
-                'sections': ['SPORT', 'SPORT INDIVIDUEL'],
-                'weight': 20, 
-                'primary_section': 'SPORT',
-            },
-            'Article Bilboquet': {
-                'kind':'ARTICLE',
-                'sections': ['SPORT'],
-                'weight': 30,
-                'primary_section': 'SPORT',
-            },
-        }
 
         for article in Article.objects.all():
             self.assertIn(article.title, expected_values.keys())
+
+            # expected value for this article
             expected_value = expected_values[article.title]
+
+            # check kind
             self.assertEqual(expected_value['kind'], article.kind)
+
+            # check author
+            self.assertEqual(expected_value['author'], article.author)
+
+            # check weight
+            for through in article.articletosection_set.all():
+                self.assertEqual(expected_value['weight'], through.weight)
+
+            # check sections
             self.assertEqual(
                 len(expected_value['sections']),
                 article.sections.count()
             )
+
+
             for section in article.sections.all():
                 self.assertIn(section.name, expected_value['sections'])
 
+            # check primary sections
             self.assertEqual(1, article.primary_sections.count())
 
             self.assertEqual(
@@ -155,15 +193,34 @@ class IntegrationTests(TestCase):
                 article.primary_sections.all()[0].name
             )
 
-            # check that get_or_create works
-            self.assertEqual(3, Section.objects.count())
+        # The overal count of sections is 3 check that get_or_create works
+        self.assertEqual(3, Section.objects.count())
+
+    def _update_imports(self):
+        # simulate an update
+        import_dir = os.path.join(CURRENT_PATH, 'import')
+        shutil.rmtree(import_dir)
+        import_update = os.path.join(CURRENT_PATH, 'import.update')
+        shutil.copytree(import_update, import_dir)
 
     def test_run_without_command(self):
         """Tests full configuration without command"""
         config = ArticleConfig()
         config.run()
 
-        self._test_article_created()
+        self._test_article_created(expected_values_initial)
+
+    def test_run_with_update(self):
+        config = ArticleConfig()
+        # first import
+        config.run()
+
+        self._update_imports()
+
+        # second import
+        config.run()
+
+        self._test_article_created(expected_values_after_update)
 
     def test_run_with_command(self):
         """Tests full configuration with command"""
@@ -172,4 +229,4 @@ class IntegrationTests(TestCase):
             'importomatic.tests.integration.ArticleConfig'
         )
 
-        self._test_article_created()
+        self._test_article_created(expected_values_initial)

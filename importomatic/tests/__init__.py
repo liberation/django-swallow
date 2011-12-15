@@ -21,9 +21,9 @@ class Article(models.Model):
         related_name='highlight_set'
     )
     kind = models.CharField(max_length=255)
+    author = models.CharField(max_length=255)
 
-    publication_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
+    modified_by = models.CharField(max_length=255)
 
     def __unicode__(self):
         return self.title
