@@ -259,3 +259,7 @@ class IntegrationTests(TestCase):
         )
 
         self._test_articles(expected_values_initial)
+
+    def tearDown(self):
+        import_dir = os.path.join(CURRENT_PATH, 'import')
+        shutil.rmtree(import_dir)
