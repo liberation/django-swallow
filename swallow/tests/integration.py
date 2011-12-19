@@ -84,6 +84,9 @@ class ArticleConfig(DefaultConfig):
     Facade = ArticleFacade
     Populator = ArticlePopulator
 
+    def skip(self, facade):
+        return False
+
     def match(self, f):
         return f.endswith('.xml') and not f.startswith('.')
 

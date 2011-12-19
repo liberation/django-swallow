@@ -142,6 +142,10 @@ class DefaultConfig(object):
                 else:
                     logger.info('failed match for %s' % partial_file_path)
 
+    def skip(self, facade):
+        """Whether to import the item or not"""
+        raise NotImplementedError()
+
     def process_file(self, path, name):
         file_path = os.path.join(path, name)
         input, work, error, done = self.paths(file_path)
@@ -167,7 +171,10 @@ class DefaultConfig(object):
         else:
             try:
                 for item in items:
-                    self.process_item(item)
+                    if not self.skip(item):
+                        self.process_item(item)
+                    else:
+                        logger.info('%s skipped' % item)
             except Exception, exception:
                 log_exception(
                     exception,
