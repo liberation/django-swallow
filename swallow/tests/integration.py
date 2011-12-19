@@ -223,6 +223,7 @@ class IntegrationTests(TestCase):
         self._test_articles(expected_values_initial)
 
     def test_run_with_update(self):
+        """Check that update of instances is properly done"""
         config = ArticleConfig()
         # first import
         config.run()
@@ -235,6 +236,8 @@ class IntegrationTests(TestCase):
         self._test_articles(expected_values_after_update)
 
     def test_run_with_update_and_modification(self):
+        """Check that update is properly done when instances in db were
+        modified"""
         config = ArticleConfig()
         config.run()
 
