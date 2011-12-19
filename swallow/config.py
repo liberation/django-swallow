@@ -152,6 +152,7 @@ class DefaultConfig(object):
         f = open(work)
 
         try:
+            # FIXME: find a better naming for Facade.items
             items = self.Facade.items(file_path, f)
         except Exception, exception:
             log_exception(
