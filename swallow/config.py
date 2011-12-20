@@ -89,10 +89,10 @@ class DefaultConfig(object):
 
     @property
     def Populator(self):
-        return NotImplementedError()
+        raise NotImplementedError()
 
     def match(self, file_path):
-        """Filter files, if it returns True, the file is processed"""
+        """Filter files, if it returns True if the file shoud be processed"""
         raise NotImplementedError()
 
     @property
