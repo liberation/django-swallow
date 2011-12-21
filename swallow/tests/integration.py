@@ -1,4 +1,4 @@
-import os, shutil, copy
+import os, shutil, copy, re
 
 from django.test import TestCase
 from django.conf import settings
@@ -7,16 +7,17 @@ from django.core.management import call_command
 from django.db.models import Count
 
 from swallow.config import DefaultConfig
-from swallow.facades import XmlFacade
+from swallow.wrappers import XmlWrapper
 from swallow.populator import BasePopulator
 from swallow.models import Matching
 from swallow.tests import Section, Article, ArticleToSection
+from swallow.builder import BaseBuilder
 
 
 CURRENT_PATH = os.path.dirname(__file__)
 
 
-class ArticleFacade(XmlFacade):
+class ArticleWrapper(XmlWrapper):
 
     @property
     def instance_filters(self):
@@ -40,7 +41,6 @@ class ArticlePopulator(BasePopulator):
         'sections',
         'primary_sections',
     )
-
 
     def kind(self):
         self._from_matching(
@@ -72,23 +72,37 @@ class ArticlePopulator(BasePopulator):
         through = ArticleToSection(
             article=self._instance,
             section=section,
-            weight=self._facade.weight,
+            weight=self._wrapper.weight,
         )
         through.save()
         return through
 
 
-class ArticleConfig(DefaultConfig):
+class ArticleBuilder(BaseBuilder):
 
-    model = Article
-    Facade = ArticleFacade
+    Wrapper = ArticleWrapper
+    Model = Article
     Populator = ArticlePopulator
 
-    def skip(self, facade):
+    def __init__(self, path, fd):
+        super(ArticleBuilder, self).__init__(path, fd)
+
+    def skip(self, wrapper):
         return False
 
-    def match(self, f):
-        return f.endswith('.xml') and not f.startswith('.')
+    def instance_is_modified(self, instance):
+        if instance.modified_by is None:
+            return False
+        return instance.modified_by == 'swallow'
+
+
+class ArticleConfig(DefaultConfig):
+
+    def builder(self, path, fd):
+        filename = os.path.basename(path)
+        if re.match(r'^\w+\.xml$', filename) is not None:
+            return ArticleBuilder(path, fd)
+        return None
 
     def instance_is_modified(self, instance):
         if instance.modified_by is None:
@@ -143,8 +157,8 @@ class IntegrationTests(TestCase):
         import_dir = os.path.join(CURRENT_PATH, 'import')
         if os.path.exists(import_dir):
             shutil.rmtree(import_dir)
-        import_bak = os.path.join(CURRENT_PATH, 'import.bak')
-        shutil.copytree(import_bak, import_dir)
+        import_initial = os.path.join(CURRENT_PATH, 'import.initial')
+        shutil.copytree(import_initial, import_dir)
 
         settings.MEDIA_ROOT = '/tmp'
         settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
@@ -219,7 +233,7 @@ class IntegrationTests(TestCase):
         shutil.copytree(import_update, import_dir)
 
     def test_run_without_command(self):
-        """Tests full configuration without command"""
+        """Tests full configuration without commands"""
         config = ArticleConfig()
         config.run()
 
