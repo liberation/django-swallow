@@ -93,7 +93,7 @@ class ArticleBuilder(BaseBuilder):
     def instance_is_modified(self, instance):
         if instance.modified_by is None:
             return False
-        return instance.modified_by == 'swallow'
+        return instance.modified_by != 'swallow'
 
 
 class ArticleConfig(DefaultConfig):
