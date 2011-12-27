@@ -25,11 +25,3 @@ class XmlWrapper(BaseWrapper):
 
     def __str__(self):
         return '<%s %s>' % (type(self).__name__, self.path)
-
-
-class JsonWrapper(BaseWrapper):
-    # FIXME: implement items method
-
-    def __init__(self, file_path, content, item):
-        super(JsonWrapper, self).__init__(file_path, content)
-        self.item = item
