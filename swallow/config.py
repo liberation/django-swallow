@@ -97,7 +97,7 @@ class DefaultConfig(object):
                 fd = open(input_file_path)
                 builder = self.builder(input_file_path, fd)
                 if builder is None:
-                    logger.info('failed to find a Builder class')
+                    logger.info('skip file')
                     continue
                 else:
                     logger.info('match %s' % partial_file_path)
