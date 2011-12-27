@@ -50,10 +50,11 @@ class BaseBuilder(object):
         raise NotImplementedError()
 
     def process_and_save(self):
-
+        instances = []
         for wrapper in self.Wrapper.iter_wrappers(self.path, self.fd):
             if not self.skip(wrapper):
                 instance = self.__get_or_create(wrapper)
+                instances.append(instance)
                 modified = self.instance_is_modified(instance)
                 populator = self.Populator(wrapper, instance, modified)
                 for field in instance._meta.fields:
@@ -83,3 +84,4 @@ class BaseBuilder(object):
                             method()
                         # else ``method`` is not set no need to set this field
             # that's all folks :)
+        return instances
