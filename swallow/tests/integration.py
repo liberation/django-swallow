@@ -84,9 +84,6 @@ class ArticleBuilder(BaseBuilder):
     Model = Article
     Populator = ArticlePopulator
 
-    def __init__(self, path, fd):
-        super(ArticleBuilder, self).__init__(path, fd)
-
     def skip(self, wrapper):
         return False
 
