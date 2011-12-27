@@ -98,7 +98,7 @@ class DefaultConfig(object):
                 builder = self.builder(input_file_path, fd)
                 if builder is None:
                     logger.info('failed to find a Builder class')
-                    return
+                    continue
                 else:
                     logger.info('match %s' % partial_file_path)
                     if not self.dryrun:
