@@ -24,6 +24,27 @@ class ArticleWrapper(XmlWrapper):
         return {'title': self.title}
 
     @property
+    def title(self):
+        title = self.item.find('title').text
+        return title
+
+    @property
+    def author(self):
+        return self.item.find('author').text
+
+    @property
+    def source(self):
+        return self.item.find('source').text
+
+    @property
+    def section(self):
+        return self.item.find('section').text
+
+    @property
+    def weight(self):
+        return self.item.find('weight').text
+
+    @property
     def modified_by(self):
         return 'swallow'
 
