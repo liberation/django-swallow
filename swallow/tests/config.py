@@ -7,103 +7,108 @@ from integration import ArticleConfig
 from swallow.config import DefaultConfig
 from swallow.wrappers import XmlWrapper
 from swallow.populator import BasePopulator
+from swallow.builder import BaseBuilder
 
 from django.test import TestCase
 from django.conf import settings
 
 CURRENT_PATH = os.path.dirname(__file__)
 
-# Implement a Builder class to make this work
-# Class ConfigTests(TestCase):
 
-#     def setUp(self):
-#         settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
+class ConfigTests(TestCase):
 
-#         self.import_dir = os.path.join(CURRENT_PATH, 'import')
-#         if os.path.exists(self.import_dir):
-#             shutil.rmtree(self.import_dir)
-#         import_bak = os.path.join(CURRENT_PATH, 'import.bak')
-#         shutil.copytree(import_bak, self.import_dir)
+    def setUp(self):
+        settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
 
-#     def tearDown(self):
-#         shutil.rmtree(self.import_dir)
+        self.import_dir = os.path.join(CURRENT_PATH, 'import')
+        if os.path.exists(self.import_dir):
+            shutil.rmtree(self.import_dir)
+        import_initial = os.path.join(CURRENT_PATH, 'import.initial')
+        shutil.copytree(import_initial, self.import_dir)
 
-#     def test_dry_run(self):
-#         """Test that dryrun doesn't create new instance and
-#         that input files are not moves"""
-#         class ArticleConfig(DefaultConfig):
+    def tearDown(self):
+        shutil.rmtree(self.import_dir)
 
-#             model =  Article
-#             Wrapper = XmlWrapper
-#             Populator = None
+    def test_dry_run(self):
+        """Test that dryrun doesn't create new instance and
+        that input files are not moved"""
 
-#             def skip(self, wrapper):
-#                 return True
+        class ArticleBuilder(BaseBuilder):
+            pass
 
-#             def match(self, f):
-#                 return True
+        class ArticleConfig(DefaultConfig):
 
-#             def instance_is_modified(self, instance):
-#                 return False
+            def builder(self, path, fd):
+                return ArticleBuilder(path, fd)
 
-#         config = ArticleConfig(dryrun=True)
-#         config.run()
+            def instance_is_modified(self, instance):
+                return False
 
-#         content = os.listdir(config.input_dir)
+        config = ArticleConfig(dryrun=True)
+        config.run()
 
-#         self.assertEqual(3, len(content))
-#         self.assertIn('ski.xml', content)
-#         self.assertIn('boxe.xml', content)
-#         self.assertIn('bilboquet.xml', content)
-#         self.assertEqual(0, Article.objects.count())
+        content = os.listdir(config.input_dir)
 
-#     def test_skip(self):
-#         """Test that if tests returns ``True`` the instance creation is
-#         skipped"""
+        self.assertEqual(3, len(content))
+        self.assertIn('ski.xml', content)
+        self.assertIn('boxe.xml', content)
+        self.assertIn('bilboquet.xml', content)
+        self.assertEqual(0, Article.objects.count())
 
-#         class SkipWrapper(XmlWrapper):
-#             title = 'foo'
+    def test_skip(self):
+        """Test that if ``Builder.skip`` returns ``True`` the instance
+        creation is skipped"""
 
-#             @property
-#             def instance_filters(self):
-#                 return {'title': self.item.text}
+        class SkipWrapper(XmlWrapper):
+            title = 'foo'
 
-#             @classmethod
-#             def items(cls, path, f):
-#                 root = super(SkipWrapper, cls).items(path, f)[0]
-#                 for item in root.item.iterfind('item'):
-#                     yield cls(item, path)
+            @property
+            def instance_filters(self):
+                return {'title': self.item.text}
 
-#             kind = 'kind'
-#             title = 'title'
-#             author = 'author'
-#             modified_by = 'modified_by'
+            @classmethod
+            def iter_wrappers(cls, path, f):
+                root = super(SkipWrapper, cls).iter_wrappers(path, f)[0]
+                for item in root.item.iterfind('item'):
+                    yield cls(item, path)
 
-#         class SkipPopulator(BasePopulator):
-#             _fields_one_to_one = (
-#                 'title',
-#                 'kind',
-#                 'author',
-#                 'modified_by',
-#             )
-#             _fields_if_instance_already_exists = []
-#             _fields_if_instance_modified_from_last_import = []
+            kind = 'kind'
+            title = 'title'
+            author = 'author'
+            modified_by = 'modified_by'
 
-#         class SkipConfig(DefaultConfig):
-#             Wrapper = SkipWrapper
-#             model = Article
-#             Populator = SkipPopulator
+        class SkipPopulator(BasePopulator):
+            _fields_one_to_one = (
+                'title',
+                'kind',
+                'author',
+                'modified_by',
+            )
+            _fields_if_instance_already_exists = []
+            _fields_if_instance_modified_from_last_import = []
 
-#             def instance_is_modified(self, instance):
-#                 return False
+        class SkipBuilder(BaseBuilder):
 
-#             def skip(self, wrapper):
-#                 return wrapper.item.text in ('1', '2')
+            Wrapper = SkipWrapper
+            Model = Article
+            Populator = SkipPopulator
 
-#             def match(self, path):
-#                 return True
+            def skip(self, wrapper):
+                txt = wrapper.item.text
+                return txt in ('1', '2')
 
-#         config = SkipConfig()
-#         config.run()
+            def instance_is_modified(self, instance):
+                return False
 
-#         self.assertEqual(2, Article.objects.count())
+        class SkipConfig(DefaultConfig):
+
+            def builder(self, path, fd):
+                return SkipBuilder(path, fd)
+
+            def instance_is_modified(self, instance):
+                return False
+
+        config = SkipConfig()
+        config.run()
+
+        self.assertEqual(2, Article.objects.count())
