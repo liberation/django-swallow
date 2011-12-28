@@ -32,6 +32,10 @@ def move_file(src, dst):
         logger.debug("can't move %s to %s" % (src, dst))
         dst_file = os.path.join(dst, os.path.basename(src))
         if os.path.exists(dst_file):
+            # if the file already exists the import failed previously
+            # no need to move this file again since afp xml files
+            # are properly versionned we are assured that it's the
+            # same file
             os.remove(src)
         else:  # arg! it's something else
                # keep the file we don't want to loose data
