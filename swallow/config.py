@@ -97,7 +97,7 @@ class DefaultConfig(object):
                 fd = open(input_file_path)
                 builder = self.builder(input_file_path, fd)
                 if builder is None:
-                    logger.info('skip file')
+                    logger.info('skip file %s' input_file_path)
                     continue
                 else:
                     logger.info('match %s' % partial_file_path)
