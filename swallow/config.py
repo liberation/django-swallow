@@ -113,7 +113,7 @@ class DefaultConfig(object):
                             )
                             fd.close()
                             move_file(
-                                work,
+                                input_file_path,
                                 error,
                             )
                         else:
