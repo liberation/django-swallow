@@ -20,36 +20,6 @@ class BaseBuilder(object):
     def instance_is_modified(self, instance):
         raise NotImplementedError()
 
-    def __init__(self, path, fd):
-        self.path = path
-        self.fd = fd
-
-    def __set_field_name(self, instance, populator, wrapper, field_name):
-        if field_name in populator._fields_one_to_one:
-            # it's a wrapper property
-            value = getattr(wrapper, field_name)
-            setattr(instance, field_name, value)
-        else:
-            # it may be a populator method
-            method = getattr(populator, field_name, None)
-            if method is not None:
-                method()  # CHECKME: This doesn't return a value so
-                          # that both populator methods type (m2m & property)
-                          # work the same way, that said it makes
-                          # creating methods for property settings complex
-                          # in simple cases
-            # else this field doesn't need to be populated
-
-    def __get_or_create(self, wrapper):
-        # get or create without saving
-        try:
-            instance = self.Model.objects.get(
-                **wrapper.instance_filters
-            )
-        except self.Model.DoesNotExist:
-            instance = self.Model(**wrapper.instance_filters)
-        return instance
-
     def skip(self, wrapper):
         raise NotImplementedError()
 
@@ -89,3 +59,33 @@ class BaseBuilder(object):
                         # else ``method`` is not set no need to set this field
             # that's all folks :)
         return instances
+
+    def __init__(self, path, fd):
+        self.path = path
+        self.fd = fd
+
+    def __set_field_name(self, instance, populator, wrapper, field_name):
+        if field_name in populator._fields_one_to_one:
+            # it's a wrapper property
+            value = getattr(wrapper, field_name)
+            setattr(instance, field_name, value)
+        else:
+            # it may be a populator method
+            method = getattr(populator, field_name, None)
+            if method is not None:
+                method()  # CHECKME: This doesn't return a value so
+                          # that both populator methods type (m2m & property)
+                          # work the same way, that said it makes
+                          # creating methods for property settings complex
+                          # in simple cases
+            # else this field doesn't need to be populated
+
+    def __get_or_create(self, wrapper):
+        # get or create without saving
+        try:
+            instance = self.Model.objects.get(
+                **wrapper.instance_filters
+            )
+        except self.Model.DoesNotExist:
+            instance = self.Model(**wrapper.instance_filters)
+        return instance

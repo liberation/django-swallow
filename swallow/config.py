@@ -52,6 +52,9 @@ class DefaultConfig(object):
         )
         return path
 
+    def builder(self, path):
+        raise NotImplementedError()
+
     def __init__(self, dryrun=False):
         self.dryrun = dryrun
 
@@ -69,9 +72,6 @@ class DefaultConfig(object):
         error = os.path.realpath(os.path.join(self.error_dir, path))
         done = os.path.realpath(os.path.join(self.done_dir, path))
         return input, work, error, done
-
-    def builder(self, path):
-        raise NotImplementedError()
 
     def process_recursively(self, path):
         logger.info('process_recursively %s' % path)
