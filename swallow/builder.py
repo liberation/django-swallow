@@ -33,7 +33,11 @@ class BaseBuilder(object):
             # it may be a populator method
             method = getattr(populator, field_name, None)
             if method is not None:
-                method()
+                method()  # CHECKME: This doesn't return a value so
+                          # that both populator methods type (m2m & property)
+                          # work the same way, that said it makes
+                          # creating methods for property settings complex
+                          # in simple cases
             # else this field doesn't need to be populated
 
     def __get_or_create(self, wrapper):
