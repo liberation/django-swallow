@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.db.models import Count
 
 from swallow.config import DefaultConfig
-from swallow.wrappers import XmlWrapper
+from swallow.mappers import XmlMapper
 from swallow.populator import BasePopulator
 from swallow.models import Matching
 from swallow.tests import Section, Article, ArticleToSection
@@ -17,7 +17,7 @@ from swallow.builder import BaseBuilder
 CURRENT_PATH = os.path.dirname(__file__)
 
 
-class ArticleWrapper(XmlWrapper):
+class ArticleMapper(XmlMapper):
 
     @property
     def _instance_filters(self):
@@ -93,7 +93,7 @@ class ArticlePopulator(BasePopulator):
         through = ArticleToSection(
             article=self._instance,
             section=section,
-            weight=self._wrapper.weight,
+            weight=self._mapper.weight,
         )
         through.save()
         return through
@@ -101,11 +101,11 @@ class ArticlePopulator(BasePopulator):
 
 class ArticleBuilder(BaseBuilder):
 
-    Wrapper = ArticleWrapper
+    Mapper = ArticleMapper
     Model = Article
     Populator = ArticlePopulator
 
-    def skip(self, wrapper):
+    def skip(self, mapper):
         return False
 
     def instance_is_locally_modified(self, instance):

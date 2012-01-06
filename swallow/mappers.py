@@ -2,15 +2,15 @@ from lxml import etree
 import json
 
 
-class BaseWrapper(object):
+class BaseMapper(object):
 
     @property
     def _instance_filters(self):
         raise NotImplemented()
 
 
-class XmlWrapper(BaseWrapper):
-    """Xml file wrapper to access it's properties passed to
+class XmlMapper(BaseMapper):
+    """Xml file mapper to access it's properties passed to
     :meth:`DefaultConfig.populate`"""
 
     def __init__(self, item, path):
@@ -18,7 +18,7 @@ class XmlWrapper(BaseWrapper):
         self.path = path
 
     @classmethod
-    def _iter_wrappers(cls, file_path, f):
+    def _iter_mappers(cls, file_path, f):
         xml = etree.parse(f)
         root = xml.getroot()
         return [cls(root, file_path)]

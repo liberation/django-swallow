@@ -24,8 +24,8 @@ class BasePopulator(object):
     """
 
 
-    def __init__(self, wrapper, instance, modified):
-        self._wrapper = wrapper
+    def __init__(self, mapper, instance, modified):
+        self._mapper = mapper
         self._instance = instance
         self._modified = modified
         self._updating = False if instance.id is None else True
@@ -86,7 +86,7 @@ class BasePopulator(object):
 
         if isinstance(field, ManyToManyField):
             # it's a M2M field
-            values = matching.match(self._wrapper, first_matching)
+            values = matching.match(self._mapper, first_matching)
             for value in values:
                 if get_or_create_related is None:
                     msg = 'Tried to set a related  property without '
@@ -108,7 +108,7 @@ class BasePopulator(object):
         else:
             # since it's a property we only need one value
             # force first_match
-            values = matching.match(self._wrapper, first_matching=True)
+            values = matching.match(self._mapper, first_matching=True)
             setattr(self._instance, field_name, values[0])
 
     def _to_set(self, field_name):

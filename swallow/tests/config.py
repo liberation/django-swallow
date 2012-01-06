@@ -5,7 +5,7 @@ from . import Article
 from integration import ArticleConfig
 
 from swallow.config import DefaultConfig
-from swallow.wrappers import XmlWrapper
+from swallow.mappers import XmlMapper
 from swallow.populator import BasePopulator
 from swallow.builder import BaseBuilder
 
@@ -59,7 +59,7 @@ class ConfigTests(TestCase):
         """Test that if ``Builder.skip`` returns ``True`` the instance
         creation is skipped"""
 
-        class SkipWrapper(XmlWrapper):
+        class SkipMapper(XmlMapper):
             title = 'foo'
 
             @property
@@ -67,8 +67,8 @@ class ConfigTests(TestCase):
                 return {'title': self.item.text}
 
             @classmethod
-            def _iter_wrappers(cls, path, f):
-                root = super(SkipWrapper, cls)._iter_wrappers(path, f)[0]
+            def _iter_mappers(cls, path, f):
+                root = super(SkipMapper, cls)._iter_mappers(path, f)[0]
                 for item in root.item.iterfind('item'):
                     yield cls(item, path)
 
@@ -89,12 +89,12 @@ class ConfigTests(TestCase):
 
         class SkipBuilder(BaseBuilder):
 
-            Wrapper = SkipWrapper
+            Mapper = SkipMapper
             Model = Article
             Populator = SkipPopulator
 
-            def skip(self, wrapper):
-                txt = wrapper.item.text
+            def skip(self, mapper):
+                txt = mapper.item.text
                 return txt in ('1', '2')
 
             def instance_is_locally_modified(self, instance):

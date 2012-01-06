@@ -6,7 +6,7 @@ from django.db.models.fields import AutoField
 class BaseBuilder(object):
 
     @property
-    def Wrapper(self):
+    def Mapper(self):
         raise NotImplementedError()
 
     @property
@@ -20,17 +20,17 @@ class BaseBuilder(object):
     def instance_is_locally_modified(self, instance):
         raise NotImplementedError()
 
-    def skip(self, wrapper):
+    def skip(self, mapper):
         raise NotImplementedError()
 
     def process_and_save(self):
         instances = []
-        for wrapper in self.Wrapper._iter_wrappers(self.path, self.fd):
-            if not self.skip(wrapper):
-                instance = self.__get_or_create(wrapper)
+        for mapper in self.Mapper._iter_mappers(self.path, self.fd):
+            if not self.skip(mapper):
+                instance = self.__get_or_create(mapper)
                 instances.append(instance)
                 modified = self.instance_is_locally_modified(instance)
-                populator = self.Populator(wrapper, instance, modified)
+                populator = self.Populator(mapper, instance, modified)
                 for field in instance._meta.fields:
                     if isinstance(field, AutoField):
                         # can't set auto field
@@ -40,7 +40,7 @@ class BaseBuilder(object):
                             self.__set_field_name(
                                 instance,
                                 populator,
-                                wrapper,
+                                mapper,
                                 field.name
                             )
                 # save to be able to populate m2m fields
@@ -64,10 +64,10 @@ class BaseBuilder(object):
         self.path = path
         self.fd = fd
 
-    def __set_field_name(self, instance, populator, wrapper, field_name):
+    def __set_field_name(self, instance, populator, mapper, field_name):
         if field_name in populator._fields_one_to_one:
-            # it's a wrapper property
-            value = getattr(wrapper, field_name)
+            # it's a mapper property
+            value = getattr(mapper, field_name)
             setattr(instance, field_name, value)
         else:
             # it may be a populator method
@@ -80,12 +80,12 @@ class BaseBuilder(object):
                           # in simple cases
             # else this field doesn't need to be populated
 
-    def __get_or_create(self, wrapper):
+    def __get_or_create(self, mapper):
         # get or create without saving
         try:
             instance = self.Model.objects.get(
-                **wrapper._instance_filters
+                **mapper._instance_filters
             )
         except self.Model.DoesNotExist:
-            instance = self.Model(**wrapper._instance_filters)
+            instance = self.Model(**mapper._instance_filters)
         return instance
