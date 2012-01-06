@@ -18,7 +18,7 @@ class XmlWrapper(BaseWrapper):
         self.path = path
 
     @classmethod
-    def iter_wrappers(cls, file_path, f):
+    def _iter_wrappers(cls, file_path, f):
         xml = etree.parse(f)
         root = xml.getroot()
         return [cls(root, file_path)]

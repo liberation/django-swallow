@@ -25,7 +25,7 @@ class BaseBuilder(object):
 
     def process_and_save(self):
         instances = []
-        for wrapper in self.Wrapper.iter_wrappers(self.path, self.fd):
+        for wrapper in self.Wrapper._iter_wrappers(self.path, self.fd):
             if not self.skip(wrapper):
                 instance = self.__get_or_create(wrapper)
                 instances.append(instance)

@@ -67,8 +67,8 @@ class ConfigTests(TestCase):
                 return {'title': self.item.text}
 
             @classmethod
-            def iter_wrappers(cls, path, f):
-                root = super(SkipWrapper, cls).iter_wrappers(path, f)[0]
+            def _iter_wrappers(cls, path, f):
+                root = super(SkipWrapper, cls)._iter_wrappers(path, f)[0]
                 for item in root.item.iterfind('item'):
                     yield cls(item, path)
 
