@@ -97,7 +97,7 @@ class ConfigTests(TestCase):
                 txt = wrapper.item.text
                 return txt in ('1', '2')
 
-            def instance_is_modified(self, instance):
+            def instance_is_locally_modified(self, instance):
                 return False
 
         class SkipConfig(DefaultConfig):
@@ -105,7 +105,7 @@ class ConfigTests(TestCase):
             def load_builder(self, path, fd):
                 return SkipBuilder(path, fd)
 
-            def instance_is_modified(self, instance):
+            def instance_is_locally_modified(self, instance):
                 return False
 
         config = SkipConfig()

@@ -108,7 +108,7 @@ class ArticleBuilder(BaseBuilder):
     def skip(self, wrapper):
         return False
 
-    def instance_is_modified(self, instance):
+    def instance_is_locally_modified(self, instance):
         if instance.modified_by is None:
             return False
         return instance.modified_by != 'swallow'

@@ -17,7 +17,7 @@ class BaseBuilder(object):
     def Populator(self):
         raise NotImplementedError()
 
-    def instance_is_modified(self, instance):
+    def instance_is_locally_modified(self, instance):
         raise NotImplementedError()
 
     def skip(self, wrapper):
@@ -29,7 +29,7 @@ class BaseBuilder(object):
             if not self.skip(wrapper):
                 instance = self.__get_or_create(wrapper)
                 instances.append(instance)
-                modified = self.instance_is_modified(instance)
+                modified = self.instance_is_locally_modified(instance)
                 populator = self.Populator(wrapper, instance, modified)
                 for field in instance._meta.fields:
                     if isinstance(field, AutoField):
