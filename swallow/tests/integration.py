@@ -122,7 +122,7 @@ class ArticleConfig(DefaultConfig):
             return ArticleBuilder(path, fd)
         return None
 
-    def instance_is_modified(self, instance):
+    def instance_is_locally_modified(self, instance):
         if instance.modified_by is None:
             return False
         else:
