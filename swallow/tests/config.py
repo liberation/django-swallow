@@ -63,7 +63,7 @@ class ConfigTests(TestCase):
             title = 'foo'
 
             @property
-            def instance_filters(self):
+            def _instance_filters(self):
                 return {'title': self.item.text}
 
             @classmethod

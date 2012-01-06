@@ -20,7 +20,7 @@ CURRENT_PATH = os.path.dirname(__file__)
 class ArticleWrapper(XmlWrapper):
 
     @property
-    def instance_filters(self):
+    def _instance_filters(self):
         return {'title': self.title}
 
     @property

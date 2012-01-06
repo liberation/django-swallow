@@ -84,8 +84,8 @@ class BaseBuilder(object):
         # get or create without saving
         try:
             instance = self.Model.objects.get(
-                **wrapper.instance_filters
+                **wrapper._instance_filters
             )
         except self.Model.DoesNotExist:
-            instance = self.Model(**wrapper.instance_filters)
+            instance = self.Model(**wrapper._instance_filters)
         return instance
