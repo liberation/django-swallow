@@ -52,7 +52,7 @@ class DefaultConfig(object):
         )
         return path
 
-    def builder(self, path):
+    def load_builder(self, *args):
         raise NotImplementedError()
 
     def __init__(self, dryrun=False):
@@ -95,7 +95,7 @@ class DefaultConfig(object):
                 self.process_recursively(partial_file_path)
             else:
                 fd = open(input_file_path)
-                builder = self.builder(input_file_path, fd)
+                builder = self.load_builder(input_file_path, fd)
                 if builder is None:
                     logger.info('skip file %s' % input_file_path)
                     continue

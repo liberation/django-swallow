@@ -116,7 +116,7 @@ class ArticleBuilder(BaseBuilder):
 
 class ArticleConfig(DefaultConfig):
 
-    def builder(self, path, fd):
+    def load_builder(self, path, fd):
         filename = os.path.basename(path)
         if re.match(r'^\w+\.xml$', filename) is not None:
             return ArticleBuilder(path, fd)

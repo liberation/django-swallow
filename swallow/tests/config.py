@@ -38,7 +38,7 @@ class ConfigTests(TestCase):
 
         class ArticleConfig(DefaultConfig):
 
-            def builder(self, path, fd):
+            def load_builder(self, path, fd):
                 return ArticleBuilder(path, fd)
 
             def instance_is_modified(self, instance):
@@ -102,7 +102,7 @@ class ConfigTests(TestCase):
 
         class SkipConfig(DefaultConfig):
 
-            def builder(self, path, fd):
+            def load_builder(self, path, fd):
                 return SkipBuilder(path, fd)
 
             def instance_is_modified(self, instance):
