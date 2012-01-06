@@ -5,7 +5,7 @@ import json
 class BaseWrapper(object):
 
     @property
-    def instance_filters(self):
+    def _instance_filters(self):
         raise NotImplemented()
 
 
