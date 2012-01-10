@@ -1,6 +1,11 @@
+import logging
+
 from util import log_exception, logger
 
 from django.db.models.fields import AutoField
+
+
+logger = logging.getLogger()
 
 
 class BaseBuilder(object):
@@ -57,6 +62,7 @@ class BaseBuilder(object):
                             f.clear()  # XXX: add a hook to overide this behaviour
                             method()
                         # else ``method`` is not set no need to set this field
+                logger.info('created %s@%s: %s' % (type(instance), instance.id, instance))
             # that's all folks :)
         return instances
 
