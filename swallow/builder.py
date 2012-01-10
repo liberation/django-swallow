@@ -62,7 +62,7 @@ class BaseBuilder(object):
                             f.clear()  # XXX: add a hook to overide this behaviour
                             method()
                         # else ``method`` is not set no need to set this field
-                logger.info('created %s@%s: %s' % (type(instance), instance.id, instance))
+                logger.info('saved %s@%s: %s' % (type(instance), instance.id, instance))
             # that's all folks :)
         return instances
 
@@ -92,6 +92,8 @@ class BaseBuilder(object):
             instance = self.Model.objects.get(
                 **mapper._instance_filters
             )
+            logger.info('fetched instance')
         except self.Model.DoesNotExist:
             instance = self.Model(**mapper._instance_filters)
+            logger.info('created instance')
         return instance
