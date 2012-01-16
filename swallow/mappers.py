@@ -6,6 +6,8 @@ class BaseMapper(object):
 
     @property
     def _instance_filters(self):
+        """Should return a dictionnary used to get or create
+        a new model instance"""
         raise NotImplemented()
 
 

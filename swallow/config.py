@@ -8,6 +8,11 @@ from util import move_file, log_exception, logger
 
 
 class DefaultConfig(object):
+    """Main class to define a new import.
+
+    This class is meant to be inherited and *not* used as is. You should at
+    least override :method:`swallow.config.DefaultConfig.load_builder`.
+    """
 
     @property
     def input_dir(self):
@@ -44,6 +49,7 @@ class DefaultConfig(object):
 
     @property
     def error_dir(self):
+        """Directory where to store files when their import failed"""
         class_name = type(self).__name__
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
@@ -53,6 +59,16 @@ class DefaultConfig(object):
         return path
 
     def load_builder(self, *args):
+        """Should load a :class`:swallow.builder.BaseBuilder` class and return
+        it for processing
+
+        If you did not override
+        :method:`swallow.builder.BaseBuilder.process_and_save`
+        the arguments are ``path`` of the file and a python
+        ``file`` object ``f``.
+
+        If the method returns ``None`` no processing will be done.
+        """
         raise NotImplementedError()
 
     def __init__(self, dryrun=False):
@@ -67,6 +83,7 @@ class DefaultConfig(object):
         self.process_recursively('.')
 
     def paths(self, path):
+        """Builds paths for relative path ``path``"""
         input = os.path.realpath(os.path.join(self.input_dir, path))
         work = os.path.realpath(os.path.join(self.work_dir, path))
         error = os.path.realpath(os.path.join(self.error_dir, path))
@@ -74,6 +91,12 @@ class DefaultConfig(object):
         return input, work, error, done
 
     def process_recursively(self, path):
+        """Recusively inspect :attribute:`DefaultConfig.input_dir`
+        and process files
+
+        Recursivly inspect :attribute:`DefaultConfig.input_dir`, loads
+        builder class through :method:`DefaultConfig.load_builder` and
+        run processing"""
         logger.info('process_recursively %s' % path)
 
         input, work, error, done = self.paths(path)

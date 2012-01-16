@@ -39,4 +39,5 @@ def move_file(src, dst):
             os.remove(src)
         else:  # arg! it's something else
                # keep the file we don't want to loose data
-            log_exception(exception, 'move %s to %s' % (src, dst))
+            msg = '%s is buggy, tried to move to error but failed' % src
+            log_exception(exception, msg)
