@@ -243,6 +243,16 @@ class IntegrationTests(TestCase):
         for aggregate in aggregates:
             self.assertEqual(1, aggregate['count'])
 
+    def _test_input_is_empty(self):
+        path = os.path.join(CURRENT_PATH, 'import', 'ArticleConfig', 'input')
+        l = len(os.listdir(path))
+        self.assertEqual(0, l)
+
+    def _test_done_has_files(self):
+        path = os.path.join(CURRENT_PATH, 'import', 'ArticleConfig', 'done')
+        l = len(os.listdir(path))
+        self.assertNotEqual(0, l)
+
     def _update_imports(self):
         # simulate an update
         import_dir = os.path.join(CURRENT_PATH, 'import')
@@ -256,6 +266,8 @@ class IntegrationTests(TestCase):
         config.run()
 
         self._test_articles(expected_values_initial)
+        self._test_input_is_empty()
+        self._test_done_has_files()
 
     def test_run_with_update(self):
         """Check that update of instances is properly done"""
@@ -269,6 +281,8 @@ class IntegrationTests(TestCase):
         config.run()
 
         self._test_articles(expected_values_after_update)
+        self._test_input_is_empty()
+        self._test_done_has_files()
 
     def test_run_with_update_and_modification(self):
         """Check that update is properly done when instances in db were
@@ -288,6 +302,8 @@ class IntegrationTests(TestCase):
         config.run()
 
         self._test_articles(expected_values_after_update_with_modification)
+        self._test_input_is_empty()
+        self._test_done_has_files()
 
     def test_run_with_command(self):
         """Tests full configuration with command"""
@@ -297,6 +313,8 @@ class IntegrationTests(TestCase):
         )
 
         self._test_articles(expected_values_initial)
+        self._test_input_is_empty()
+        self._test_done_has_files()
 
     def tearDown(self):
         import_dir = os.path.join(CURRENT_PATH, 'import')

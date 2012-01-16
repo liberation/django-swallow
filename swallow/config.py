@@ -143,3 +143,7 @@ class DefaultConfig(object):
                             msg = 'success'
                             logger.info(msg)
                             fd.close()
+                            move_file(
+                                input_file_path,
+                                done
+                            )
