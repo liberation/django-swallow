@@ -14,7 +14,7 @@ class BasePopulator(object):
 
         class Populator(BasePopulator):
 
-            _fields_one_to_one = None
+            _fields_one_to_one = ('some', 'attributes', 'found', 'in', 'mapper')
             _fields_if_instance_already_exists = None
             _fields_if_instance_modified_from_last_import = None
 
