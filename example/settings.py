@@ -11,7 +11,7 @@ ADMINS = (
 
 ROOT = os.path.dirname(__file__)
 SWALLOW_DIRECTORY = os.path.join(ROOT, 'import')
-
+SWALLOW_CONFIGURATION_MODULES = ('example.config',)
 MANAGERS = ADMINS
 
 DATABASES = {

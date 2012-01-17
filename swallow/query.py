@@ -3,10 +3,24 @@ import os
 from sneak.query import ListQueryResult
 
 from django.conf import settings
+from django.utils.importlib import import_module
 
 from sneak.query import ListQueryResult
 
 from models import FileSystemElement, SwallowConfiguration
+from config import DefaultConfig
+
+
+# list configurations classes
+CONFIGURATIONS = {}
+for configuration_module in settings.SWALLOW_CONFIGURATION_MODULES:
+    modules = import_module(configuration_module)
+    for cls in vars(modules).values():
+
+        if (isinstance(cls, type)
+            and issubclass(cls, DefaultConfig)
+            and cls is not DefaultConfig):
+            CONFIGURATIONS[cls.__name__] = cls
 
 
 class QueryResult(ListQueryResult):
@@ -31,16 +45,32 @@ class FileSystemQuerySet(ListQueryResult):
 
         if directory is None:
             self.directory = None
-            path = settings.SWALLOW_DIRECTORY
+            for name in CONFIGURATIONS.keys():
+                fs.append(FileSystemElement(name))
         else:
             self.directory = directory
-            path = os.path.join(settings.SWALLOW_DIRECTORY, directory)
+            path_components = os.path.split(directory)
 
-        for f in os.listdir(path):
-            full_path = os.path.join(path, f)
-            relative_path = full_path[len(settings.SWALLOW_DIRECTORY) + 1:]
-            fs.append(FileSystemElement(relative_path))
+            # if the path is something like "foobarbaz"
+            # the first componenent is an empty string
+            if not path_components[0]:
+                path_components = path_components[1:]
+            configuration_name = path_components[0]
 
+            path_components = path_components[1:]
+
+            if len(path_components) == 0:
+                for path in ['input', 'work', 'done', 'error']:
+                    f = os.path.join(configuration_name, path)
+                    fs.append(FileSystemElement(f))
+            else:
+                swallow_directory = path_components[0]
+                path_components = path_components[1:]
+                configuration = CONFIGURATIONS[configuration_name]
+                path = getattr(configuration, '%s_dir' % swallow_directory)()
+                path = os.path.join(path, *path_components)
+                for f in os.listdir(path):
+                    fs.append(FileSystemElement(f))
         return QueryResult(fs)
 
 
@@ -48,6 +78,6 @@ class SwallowConfigurationQuerySet(ListQueryResult):
 
     def filter(self, *args, **kwargs):
         configurations = []
-        for configuration in settings.SWALLOW_CONFIGURATIONS:
+        for configuration in CONFIGURATIONS.values():
             configurations.append(SwallowConfiguration(configuration))
         return QueryResult(configurations)

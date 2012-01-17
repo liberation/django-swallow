@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+
+import os
+import time
+
 from lxml import etree
 
 import translitcodec
 
+from django.conf import settings
 from django.db import models
+from django.core.urlresolvers import reverse
 
 
 def normalize(string):
@@ -132,3 +138,75 @@ class Matching(models.Model):
             if matched_set:
                 output.append(column)
         return output
+
+
+class FileSystemElement(models.Model):
+
+    class Meta:
+            permissions = (
+                ("reset_filesystemelement", "Reset a file to be run again by configuration"),
+            )
+
+    def __init__(self, path):
+        super(FileSystemElement, self).__init__(path)
+        if os.path.exists(path):
+            (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(self.full_path())
+            self._creation_date = time.ctime(ctime)
+            self._modification_date = time.ctime(mtime)
+        else:
+            self._creation_date = ''
+            self._modification_date = ''
+
+    def creation_date(self):
+        return self._creation_date
+
+    def modification_date(self):
+        return self._modification_date
+
+    def full_path(self):
+        return os.path.join(settings.SWALLOW_DIRECTORY, self.pk)
+
+    def is_dir(self):
+        return os.path.isdir(self.full_path())
+
+    def path(self):
+        if self.is_dir():
+            html =  '<a href="?directory=%s">' % self.pk
+            html += '%s</a>' % self.pk
+        else:
+            html =  '<span><a>'
+            html += '%s</a></span>' % self.pk
+        return html
+    path.allow_tags = True
+
+
+class SwallowConfiguration(models.Model):
+
+    def __init__(self, configuration):
+        # pk is a configuration class
+        super(SwallowConfiguration, self).__init__(configuration)
+
+        self.input_count = len(os.listdir(configuration.input_dir()))
+        self.error_count = len(os.listdir(configuration.error_dir()))
+        self.done_count = len(os.listdir(configuration.done_dir()))
+
+    def name(self):
+        name = self.pk.__name__
+        admin_url = reverse('admin:index')
+        s = '<a href="%sswallow/filesystemelement/?directory=%s">%s</a>'
+        s = s % (admin_url, name, name)
+        return s
+    name.allow_tags = True
+
+    def input(self):
+        return self.input_count
+
+    def done(self):
+        return self.error_count
+
+    def error(self):
+        return self.error_count
+
+    def goodissime(self):
+        return self.error_count == 0
+    goodissime.boolean = True
