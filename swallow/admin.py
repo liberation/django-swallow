@@ -68,13 +68,14 @@ class FileSystemAdmin(SneakAdmin):
         """
         actions = super(FileSystemAdmin, self).get_actions(request)
         for action in actions.keys():
+            if action == u'delete_selected':
+                del actions['delete_selected']
             opts = self.opts
             perm = '%s.%s_%s' % (
                 opts.app_label,
                 action,
                 opts.object_name.lower()
             )
-            print perm
             if not request.user.has_perm(perm):
                 del actions[action]
         return actions
