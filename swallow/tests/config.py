@@ -47,7 +47,7 @@ class ConfigTests(TestCase):
         config = ArticleConfig(dryrun=True)
         config.run()
 
-        content = os.listdir(config.input_dir)
+        content = os.listdir(config.input_dir())
 
         self.assertEqual(3, len(content))
         self.assertIn('ski.xml', content)

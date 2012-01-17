@@ -14,10 +14,10 @@ class DefaultConfig(object):
     least override :method:`swallow.config.DefaultConfig.load_builder`.
     """
 
-    @property
-    def input_dir(self):
+    @classmethod
+    def input_dir(cls):
         """Directory where to looks for new files to process"""
-        class_name = type(self).__name__
+        class_name = cls.__name__
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
@@ -25,10 +25,10 @@ class DefaultConfig(object):
         )
         return path
 
-    @property
-    def work_dir(self):
+    @classmethod
+    def work_dir(cls):
         """Directory where to store files when they are processed"""
-        class_name = type(self).__name__
+        class_name = cls.__name__
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
@@ -36,10 +36,10 @@ class DefaultConfig(object):
         )
         return path
 
-    @property
-    def done_dir(self):
+    @classmethod
+    def done_dir(cls):
         """Directory where to store files after they are processed"""
-        class_name = type(self).__name__
+        class_name = cls.__name__
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
@@ -47,10 +47,10 @@ class DefaultConfig(object):
         )
         return path
 
-    @property
-    def error_dir(self):
+    @classmethod
+    def error_dir(cls):
         """Directory where to store files when their import failed"""
-        class_name = type(self).__name__
+        class_name = cls.__name__
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
@@ -84,10 +84,10 @@ class DefaultConfig(object):
 
     def paths(self, path):
         """Builds paths for relative path ``path``"""
-        input = os.path.realpath(os.path.join(self.input_dir, path))
-        work = os.path.realpath(os.path.join(self.work_dir, path))
-        error = os.path.realpath(os.path.join(self.error_dir, path))
-        done = os.path.realpath(os.path.join(self.done_dir, path))
+        input = os.path.realpath(os.path.join(self.input_dir(), path))
+        work = os.path.realpath(os.path.join(self.work_dir(), path))
+        error = os.path.realpath(os.path.join(self.error_dir(), path))
+        done = os.path.realpath(os.path.join(self.done_dir(), path))
         return input, work, error, done
 
     def process_recursively(self, path):
