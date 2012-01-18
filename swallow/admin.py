@@ -9,7 +9,7 @@ from sneak.admin import SneakAdmin
 
 from query import VirtualFileSystemQuerySet, SwallowConfigurationQuerySet
 from models import VirtualFileSystemElement, SwallowConfiguration, Matching
-
+from util import CONFIGURATIONS
 
 admin.site.register(Matching)
 
@@ -25,20 +25,39 @@ class VirtualFileSystemChangeListView(ChangeList):
         return self.root_query_set
 
 
+def get_configuration_and_swallow_path(directory):
+    components = os.path.split(directory)
+    configuration_name, swallow_directory, path = (
+        components[0],
+        components[1],
+        components[2:]
+    )
+    configuration = CONFIGURATIONS[configuration_name]
+    swallow_dir_method = getattr(configuration, '%s_dir' % swallow_directory)
+    swallow_dir_path = swallow_dir_method()
+    return configuration, swallow_dir_path
+
+
 def reset(modeladmin, request, queryset):
+    # directory should always be set
+    directory = request.GET['directory']
+    configuration, swallow_dir_path = get_configuration_and_swallow_path(
+        directory
+    )
     for path in request.POST.getlist('_selected_action'):
-        import pdb; pdb.set_trace()
-        full_path = os.path.join(SWALLOW_DIRECTORY, path)
-        path = os.path.dirname(full_path)
-        path = os.path.join(path, '..', 'input')
-        shutil.move(full_path, path)
+        full_path = os.path.join(swallow_dir_path, path)
+        input_dir = configuration.input_dir()
+        shutil.move(full_path, input_dir)
 reset.short_description = 'Reset'
 
 
 def delete(modeladmin, request, queryset):
+    directory = request.GET['directory']
+    configuration, swallow_dir_path = get_configuration_and_swallow_path(
+        directory
+    )
     for path in request.POST.getlist('_selected_action'):
-        import pdb; pdb.set_trace()
-        full_path = os.path.join(SWALLOW_DIRECTORY, path)
+        full_path = os.path.join(swallow_dir_path, path)
         os.remove(full_path)
 delete.short_description = 'Delete'
 
