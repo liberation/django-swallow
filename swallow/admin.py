@@ -7,8 +7,8 @@ from django.contrib.admin.views.main import ChangeList
 
 from sneak.admin import SneakAdmin
 
-from query import FileSystemQuerySet, SwallowConfigurationQuerySet
-from models import FileSystemElement, SwallowConfiguration, Matching
+from query import VirtualFileSystemQuerySet, SwallowConfigurationQuerySet
+from models import VirtualFileSystemElement, SwallowConfiguration, Matching
 
 
 admin.site.register(Matching)
@@ -18,10 +18,11 @@ admin.site.register(Matching)
 # Administration for browsing SWALLOW_DIRECTORY
 #
 
-class FileSystemChangeListView(ChangeList):
+class VirtualFileSystemChangeListView(ChangeList):
 
     def get_query_set(self):
-        return self.root_query_set # filetering is already done by FileSystemModelAdmin
+        # filetering is already done by VirtualFilesystemModelAdmin
+        return self.root_query_set
 
 
 def reset(modeladmin, request, queryset):
@@ -41,13 +42,13 @@ delete.short_description = 'Delete'
 
 
 class FileSystemAdmin(SneakAdmin):
-    QuerySet = FileSystemQuerySet
+    QuerySet = VirtualFileSystemQuerySet
 
-    list_display = ('path', 'creation_date', 'modification_date')
+    list_display = ('name', 'creation_date', 'modification_date')
     actions = [reset, delete]
 
     def get_changelist(self, request):
-        return FileSystemChangeListView
+        return VirtualFileSystemChangeListView
 
     def queryset(self, request):
         GET = request.GET.copy()
@@ -81,7 +82,7 @@ class FileSystemAdmin(SneakAdmin):
         return actions
 
 if hasattr(settings, 'SWALLOW_CONFIGURATION_MODULES'):
-    admin.site.register([FileSystemElement], FileSystemAdmin)
+    admin.site.register([VirtualFileSystemElement], FileSystemAdmin)
 
 
 #
@@ -91,7 +92,7 @@ if hasattr(settings, 'SWALLOW_CONFIGURATION_MODULES'):
 class SwalllowConfigurationAdmin(SneakAdmin):
     QuerySet = SwallowConfigurationQuerySet
 
-    list_display = ('name', 'input', 'done', 'error', 'goodissime',)
+    list_display = ('name', 'status', 'input', 'done', 'error', )
     actions = None
 
     def has_add_permission(self, request):
