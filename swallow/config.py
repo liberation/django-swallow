@@ -5,6 +5,7 @@ import logging
 from django.conf import settings
 
 from util import move_file, log_exception, logger
+from settings import SWALLOW_DIRECTORY
 
 
 class DefaultConfig(object):
@@ -19,7 +20,7 @@ class DefaultConfig(object):
         """Directory where to looks for new files to process"""
         class_name = cls.__name__
         path = os.path.join(
-            settings.SWALLOW_DIRECTORY,
+            SWALLOW_DIRECTORY,
             class_name,
             'input'
         )
@@ -30,7 +31,7 @@ class DefaultConfig(object):
         """Directory where to store files when they are processed"""
         class_name = cls.__name__
         path = os.path.join(
-            settings.SWALLOW_DIRECTORY,
+            SWALLOW_DIRECTORY,
             class_name,
             'work'
         )
@@ -41,7 +42,7 @@ class DefaultConfig(object):
         """Directory where to store files after they are processed"""
         class_name = cls.__name__
         path = os.path.join(
-            settings.SWALLOW_DIRECTORY,
+            SWALLOW_DIRECTORY,
             class_name,
             'done'
         )
@@ -52,7 +53,7 @@ class DefaultConfig(object):
         """Directory where to store files when their import failed"""
         class_name = cls.__name__
         path = os.path.join(
-            settings.SWALLOW_DIRECTORY,
+            SWALLOW_DIRECTORY,
             class_name,
             'error'
         )

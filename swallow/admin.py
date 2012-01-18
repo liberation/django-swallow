@@ -27,7 +27,8 @@ class VirtualFileSystemChangeListView(ChangeList):
 
 def reset(modeladmin, request, queryset):
     for path in request.POST.getlist('_selected_action'):
-        full_path = os.path.join(settings.SWALLOW_DIRECTORY, path)
+        import pdb; pdb.set_trace()
+        full_path = os.path.join(SWALLOW_DIRECTORY, path)
         path = os.path.dirname(full_path)
         path = os.path.join(path, '..', 'input')
         shutil.move(full_path, path)
@@ -36,7 +37,8 @@ reset.short_description = 'Reset'
 
 def delete(modeladmin, request, queryset):
     for path in request.POST.getlist('_selected_action'):
-        full_path = os.path.join(settings.SWALLOW_DIRECTORY, path)
+        import pdb; pdb.set_trace()
+        full_path = os.path.join(SWALLOW_DIRECTORY, path)
         os.remove(full_path)
 delete.short_description = 'Delete'
 
