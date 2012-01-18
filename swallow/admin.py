@@ -89,6 +89,13 @@ class FileSystemAdmin(SneakAdmin):
         actions that are allowed for current user.
         """
         actions = super(FileSystemAdmin, self).get_actions(request)
+
+        # actions appears only for swallow directories ie. ``work``,
+        # ``input`` etc...
+        directory = request.GET.get('directory', '')
+        components = os.path.split(directory)
+        if not components[0]:  # if head is empty
+            return {}  # no need to show actions in non-swallow directories
         for action in actions.keys():
             if action == u'delete_selected':
                 del actions['delete_selected']
