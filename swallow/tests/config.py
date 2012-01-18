@@ -8,9 +8,9 @@ from swallow.config import DefaultConfig
 from swallow.mappers import XmlMapper
 from swallow.populator import BasePopulator
 from swallow.builder import BaseBuilder
+from swallow import settings
 
 from django.test import TestCase
-from django.conf import settings
 
 CURRENT_PATH = os.path.dirname(__file__)
 

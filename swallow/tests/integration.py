@@ -1,7 +1,7 @@
 import os, shutil, copy, re
 
 from django.test import TestCase
-from django.conf import settings
+from swallow import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.db.models import Count
@@ -178,7 +178,6 @@ class IntegrationTests(TestCase):
         import_initial = os.path.join(CURRENT_PATH, 'import.initial')
         shutil.copytree(import_initial, import_dir)
 
-        settings.MEDIA_ROOT = '/tmp'
         settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
         matching = Matching(name='SECTIONS')
         f = open(os.path.join(CURRENT_PATH, 'sections.xml'))

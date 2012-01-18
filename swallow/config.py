@@ -4,8 +4,8 @@ import logging
 
 from django.conf import settings
 
-from util import move_file, log_exception, logger
-from settings import SWALLOW_DIRECTORY
+
+import settings
 
 
 class DefaultConfig(object):
@@ -20,7 +20,7 @@ class DefaultConfig(object):
         """Directory where to looks for new files to process"""
         class_name = cls.__name__
         path = os.path.join(
-            SWALLOW_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'input'
         )
@@ -31,7 +31,7 @@ class DefaultConfig(object):
         """Directory where to store files when they are processed"""
         class_name = cls.__name__
         path = os.path.join(
-            SWALLOW_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'work'
         )
@@ -42,7 +42,7 @@ class DefaultConfig(object):
         """Directory where to store files after they are processed"""
         class_name = cls.__name__
         path = os.path.join(
-            SWALLOW_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'done'
         )
@@ -53,7 +53,7 @@ class DefaultConfig(object):
         """Directory where to store files when their import failed"""
         class_name = cls.__name__
         path = os.path.join(
-            SWALLOW_DIRECTORY,
+            settings.SWALLOW_DIRECTORY,
             class_name,
             'error'
         )
@@ -77,6 +77,7 @@ class DefaultConfig(object):
 
     def run(self):
         """Process recursivly using the BFS algorithm"""
+        from util import logger
         logger.info('run %s in %s' % (
             type(self).__name__,
             self.input_dir,
@@ -98,6 +99,9 @@ class DefaultConfig(object):
         Recursivly inspect :attribute:`DefaultConfig.input_dir`, loads
         builder class through :method:`DefaultConfig.load_builder` and
         run processing"""
+        # avoids circular imports
+        from util import move_file, log_exception, logger
+
         logger.info('process_recursively %s' % path)
 
         input, work, error, done = self.paths(path)
