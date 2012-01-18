@@ -74,7 +74,8 @@ class VirtualFileSystemQuerySet(ListQueryResult):
                 path = getattr(configuration, '%s_dir' % swallow_directory)()
                 path = os.path.join(path, *path_components)
                 for f in os.listdir(path):
-                    fse = VirtualFileSystemElement(f, path)
+                    full_path = os.path.join(path, f)
+                    fse = VirtualFileSystemElement(f, full_path)
                     fs.append(fse)
         return QueryResult(fs)
 
