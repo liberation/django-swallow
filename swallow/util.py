@@ -3,6 +3,9 @@ import logging
 import shutil
 import traceback
 
+from django.conf import settings
+from django.utils.importlib import import_module
+
 
 logger = logging.getLogger()
 
@@ -41,3 +44,16 @@ def move_file(src, dst):
                # keep the file we don't want to loose data
             msg = '%s is buggy, tried to move to error but failed' % src
             log_exception(exception, msg)
+
+
+# list configurations classes
+CONFIGURATIONS = {}
+for configuration_module in settings.SWALLOW_CONFIGURATION_MODULES:
+    from config import DefaultConfig  # avoids circular imports
+    modules = import_module(configuration_module)
+    for cls in vars(modules).values():
+
+        if (isinstance(cls, type)
+            and issubclass(cls, DefaultConfig)
+            and cls is not DefaultConfig):
+            CONFIGURATIONS[cls.__name__] = cls
