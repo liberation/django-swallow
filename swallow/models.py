@@ -140,17 +140,22 @@ class Matching(models.Model):
         return output
 
 
-class FileSystemElement(models.Model):
+class VirtualFileSystemElement(models.Model):
+    """Handles virtual directory which might be a representation of
+    a file/directory found on the filesystem"""
 
     class Meta:
             permissions = (
                 ("reset_filesystemelement", "Reset a file to be run again by configuration"),
             )
 
-    def __init__(self, path):
-        super(FileSystemElement, self).__init__(path)
-        if os.path.exists(path):
-            (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(self.full_path())
+    def __init__(self, name, path=None):
+        # if path is None it's a pure virtual element
+        # self.pk will be name
+        super(VirtualFileSystemElement, self).__init__(name)
+        self.path = path
+        if path is not None:
+            (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(path)
             self._creation_date = time.ctime(ctime)
             self._modification_date = time.ctime(mtime)
         else:
@@ -163,21 +168,21 @@ class FileSystemElement(models.Model):
     def modification_date(self):
         return self._modification_date
 
-    def full_path(self):
-        return os.path.join(settings.SWALLOW_DIRECTORY, self.pk)
-
     def is_dir(self):
-        return os.path.isdir(self.full_path())
+        if self.path is None:
+            return False
+        return os.path.isdir(self.path)
 
-    def path(self):
-        if self.is_dir():
+    def name(self):
+        if (self.is_dir()
+            or (self.path is None)):  # if it's a virtual directory 
             html =  '<a href="?directory=%s">' % self.pk
             html += '%s</a>' % self.pk
         else:
             html =  '<span><a>'
             html += '%s</a></span>' % self.pk
         return html
-    path.allow_tags = True
+    name.allow_tags = True
 
 
 class SwallowConfiguration(models.Model):
@@ -185,15 +190,19 @@ class SwallowConfiguration(models.Model):
     def __init__(self, configuration):
         # pk is a configuration class
         super(SwallowConfiguration, self).__init__(configuration)
-
         self.input_count = len(os.listdir(configuration.input_dir()))
         self.error_count = len(os.listdir(configuration.error_dir()))
         self.done_count = len(os.listdir(configuration.done_dir()))
 
     def name(self):
         name = self.pk.__name__
-        admin_url = reverse('admin:index')
-        s = '<a href="%sswallow/filesystemelement/?directory=%s">%s</a>'
+        admin_url = reverse(
+            'admin:%s_%s_changelist' % (
+                'swallow',
+                'virtualfilesystemelement'
+            ),
+        )
+        s = '<a href="%s?directory=%s">%s</a>'
         s = s % (admin_url, name, name)
         return s
     name.allow_tags = True
@@ -202,11 +211,11 @@ class SwallowConfiguration(models.Model):
         return self.input_count
 
     def done(self):
-        return self.error_count
+        return self.done_count
 
     def error(self):
         return self.error_count
 
-    def goodissime(self):
+    def status(self):
         return self.error_count == 0
-    goodissime.boolean = True
+    status.boolean = True
