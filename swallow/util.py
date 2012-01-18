@@ -48,7 +48,8 @@ def move_file(src, dst):
 
 # list configurations classes
 CONFIGURATIONS = {}
-for configuration_module in settings.SWALLOW_CONFIGURATION_MODULES:
+configurations = getattr(settings, SWALLOW_CONFIGURATION_MODULES, [])
+for configuration_module in configurations:
     from config import DefaultConfig  # avoids circular imports
     modules = import_module(configuration_module)
     for cls in vars(modules).values():
