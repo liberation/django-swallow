@@ -2,7 +2,6 @@ import shutil
 import os
 
 from django.contrib import admin
-from django.conf import settings
 from django.contrib.admin.views.main import ChangeList
 
 from sneak.admin import SneakAdmin
@@ -10,6 +9,7 @@ from sneak.admin import SneakAdmin
 from query import VirtualFileSystemQuerySet, SwallowConfigurationQuerySet
 from models import VirtualFileSystemElement, SwallowConfiguration, Matching
 from util import get_configurations
+import settings
 
 
 admin.site.register(Matching)
@@ -119,7 +119,7 @@ class FileSystemAdmin(SneakAdmin):
                 del actions[action]
         return actions
 
-if hasattr(settings, 'SWALLOW_CONFIGURATION_MODULES'):
+if settings.SWALLOW_CONFIGURATION_MODULES:
     admin.site.register([VirtualFileSystemElement], FileSystemAdmin)
 
 
@@ -136,5 +136,5 @@ class SwalllowConfigurationAdmin(SneakAdmin):
     def has_add_permission(self, request):
         return False
 
-if hasattr(settings, 'SWALLOW_CONFIGURATION_MODULES'):
+if settings.SWALLOW_CONFIGURATION_MODULES:
     admin.site.register([SwallowConfiguration], SwalllowConfigurationAdmin)
