@@ -39,14 +39,8 @@ class VirtualFileSystemQuerySet(ListQueryResult):
             # we have something like ``ConfigurationName``
             # or ``Configuration/Foo``
             self.directory = directory
-            path_components = os.path.split(directory)
+            path_components = directory.split('/')
 
-            # if the path is something like "foobarbaz"
-            # ie. a relative path with one directory
-            # the first componenent is an empty string
-            if not path_components[0]:
-                # strip the empty string
-                path_components = path_components[1:]
             configuration_name = path_components[0]
 
             # tail of the path
@@ -71,13 +65,20 @@ class VirtualFileSystemQuerySet(ListQueryResult):
                 # where ``swallow_directory`` is ``input``, ``work``
                 # ``done`` or ``error``
                 swallow_directory = path_components[0]
-                path_components = path_components[1:]
+                path_components = list(path_components[1:])
                 configuration = CONFIGURATIONS[configuration_name]
                 path = getattr(configuration, '%s_dir' % swallow_directory)()
                 path = os.path.join(path, *path_components)
                 for f in os.listdir(path):
                     full_path = os.path.join(path, f)
-                    fse = VirtualFileSystemElement(f, full_path)
+                    name_tail = list(path_components)
+                    name_tail.append(f)
+                    name = os.path.join(
+                        configuration_name,
+                        swallow_directory,
+                        *name_tail
+                    )
+                    fse = VirtualFileSystemElement(name, full_path)
                     fs.append(fse)
         return QueryResult(fs)
 
