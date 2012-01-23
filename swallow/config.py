@@ -117,7 +117,7 @@ class DefaultConfig(object):
 
         for f in os.listdir(input):
             partial_file_path = os.path.join(path, f)
-            input_file_path = os.path.join(input, partial_file_path)
+            input_file_path = os.path.join(input, f)
 
             if os.path.isdir(input_file_path):
                 self.process_recursively(partial_file_path)
