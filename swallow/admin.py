@@ -9,7 +9,8 @@ from sneak.admin import SneakAdmin
 
 from query import VirtualFileSystemQuerySet, SwallowConfigurationQuerySet
 from models import VirtualFileSystemElement, SwallowConfiguration, Matching
-from util import CONFIGURATIONS
+from util import get_configurations
+
 
 admin.site.register(Matching)
 
@@ -26,6 +27,7 @@ class VirtualFileSystemChangeListView(ChangeList):
 
 
 def get_configuration_and_swallow_path(directory):
+    CONFIGURATIONS = get_configurations()
     components = os.path.split(directory)
     configuration_name, swallow_directory, path = (
         components[0],

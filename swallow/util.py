@@ -8,6 +8,7 @@ from django.utils.importlib import import_module
 
 from settings import SWALLOW_CONFIGURATION_MODULES
 
+
 logger = logging.getLogger()
 
 
@@ -48,13 +49,15 @@ def move_file(src, dst):
 
 
 # list configurations classes
-CONFIGURATIONS = {}
-for configuration_module in SWALLOW_CONFIGURATION_MODULES:
-    from config import DefaultConfig  # avoids circular imports
-    modules = import_module(configuration_module)
-    for cls in vars(modules).values():
+def get_configurations():
+    CONFIGURATIONS = {}
+    for configuration_module in SWALLOW_CONFIGURATION_MODULES:
+        from config import DefaultConfig  # avoids circular imports
+        modules = import_module(configuration_module)
+        for cls in vars(modules).values():
 
-        if (isinstance(cls, type)
-            and issubclass(cls, DefaultConfig)
-            and cls is not DefaultConfig):
-            CONFIGURATIONS[cls.__name__] = cls
+            if (isinstance(cls, type)
+                and issubclass(cls, DefaultConfig)
+                and cls is not DefaultConfig):
+                CONFIGURATIONS[cls.__name__] = cls
+    return CONFIGURATIONS

@@ -3,7 +3,7 @@ import os
 from sneak.query import ListQueryResult
 
 from models import VirtualFileSystemElement, SwallowConfiguration
-from util import CONFIGURATIONS
+from util import get_configurations
 
 
 class QueryResult(ListQueryResult):
@@ -27,6 +27,8 @@ class VirtualFileSystemQuerySet(ListQueryResult):
             directory = getattr(self, 'directory', None)
 
         fs = []
+
+        CONFIGURATIONS = get_configurations()
 
         if directory is None:
             # we want to list all configurations
@@ -83,6 +85,7 @@ class VirtualFileSystemQuerySet(ListQueryResult):
 class SwallowConfigurationQuerySet(ListQueryResult):
 
     def filter(self, *args, **kwargs):
+        CONFIGURATIONS = get_configurations()
         configurations = []
         for configuration in CONFIGURATIONS.values():
             configurations.append(SwallowConfiguration(configuration))
