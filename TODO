@@ -1,0 +1,6 @@
+- Add tests for an input dir that has several directories in it and with dirs with depth 
+  superior to 0
+- Add tests for delete/reset actions for both files that are at a depth level of 0 and at a 
+  level superior to 0
+- Add tests for exception handling
+- Do unit testing besides integrations tests
