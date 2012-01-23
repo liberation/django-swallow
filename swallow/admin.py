@@ -26,41 +26,49 @@ class VirtualFileSystemChangeListView(ChangeList):
         return self.root_query_set
 
 
-def get_configuration_and_swallow_path(directory):
+def get_configuration(directory):
     CONFIGURATIONS = get_configurations()
-    components = os.path.split(directory)
+    components = directory.split('/')
     configuration_name, swallow_directory, path = (
         components[0],
         components[1],
         components[2:]
     )
     configuration = CONFIGURATIONS[configuration_name]
-    swallow_dir_method = getattr(configuration, '%s_dir' % swallow_directory)
-    swallow_dir_path = swallow_dir_method()
-    return configuration, swallow_dir_path
+    return configuration
+
+
+def get_swallow_dir_and_filepath(path):
+    components = path.split('/')
+    return components[1], components[2:]
 
 
 def reset(modeladmin, request, queryset):
     # directory should always be set
     directory = request.GET['directory']
-    configuration, swallow_dir_path = get_configuration_and_swallow_path(
-        directory
-    )
+    configuration = get_configuration(directory)
     for path in request.POST.getlist('_selected_action'):
-        full_path = os.path.join(swallow_dir_path, path)
+        swallow_dir, filepath = get_swallow_dir_and_filepath(path)
+        dir_config_method = getattr(configuration, '%s_dir' % swallow_dir)
+        swallow_dir_path = dir_config_method()
+        source_path = os.path.join(swallow_dir_path, *filepath)
+
         input_dir = configuration.input_dir()
-        shutil.move(full_path, input_dir)
+        target_path = os.path.join(input_dir, *filepath)
+
+        shutil.move(source_path, target_path)
 reset.short_description = 'Reset'
 
 
 def delete(modeladmin, request, queryset):
     directory = request.GET['directory']
-    configuration, swallow_dir_path = get_configuration_and_swallow_path(
-        directory
-    )
+    configuration = get_configuration(directory)
     for path in request.POST.getlist('_selected_action'):
-        full_path = os.path.join(swallow_dir_path, path)
-        os.remove(full_path)
+        swallow_dir, filepath = get_swallow_dir_and_filepath(path)
+        dir_config_method = getattr(configuration, '%s_dir' % swallow_dir)
+        swallow_dir_path = dir_config_method()
+        source_path = os.path.join(swallow_dir_path, *filepath)
+        os.remove(source_path)
 delete.short_description = 'Delete'
 
 
