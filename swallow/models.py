@@ -19,10 +19,10 @@ def normalize(string):
 class Matching(models.Model):
     """Represents a matching file. A matching file is an xml file (really)
     that let you build matching rules for your
-    :class:`importomatic.facades.BaseFacade` class used in ``process``
-    through :meth:`importomatic.config.DefaultConfig.populate_from_matching`
+    :class:`swallow.facades.BaseFacade` class used in ``process``
+    through :meth:`swallow.config.DefaultConfig.populate_from_matching`
 
-    See also :meth:`importomatic.models.Matching.match`.
+    See also :meth:`swallow.models.Matching.match`.
 
     An example matching xml file follow:
 
@@ -56,14 +56,14 @@ class Matching(models.Model):
 
         (facade.title == "foo" or facade.title == "bar") and facade.suptitle == "baz"
 
-    See also :meth:`importomatic.models.Matching.match`.
+    See also :meth:`swallow.models.Matching.match`.
     """
 
     # :param name: name of the matching
     name = models.CharField(max_length=250)
 
     # :param file: file which holds the values which computes the matching
-    file = models.FileField(upload_to='importomatic')
+    file = models.FileField(upload_to='swallow_matchings')
 
     def __unicode__(self):
         return self.name

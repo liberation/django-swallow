@@ -4,7 +4,7 @@ from django.db.models.fields.related import ManyToManyField
 
 
 class BasePopulator(object):
-    """Class used by :class:`importomatic.config.DefaultConfig`
+    """Class used by :class:`swallow.config.DefaultConfig`
     to populate instance for each item. This class is meant to
     be inherited.
 

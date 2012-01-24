@@ -60,7 +60,7 @@ class MatchingTests(TestCase):
 
         matching = Matching(name='TEST')
         matching.file.save(
-            'importomatic/test.xml',
+            'swallow_matchings/test.xml',
             ContentFile(xml),
             save=True
         )
