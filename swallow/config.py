@@ -80,7 +80,7 @@ class DefaultConfig(object):
         from util import logger
         logger.info('run %s in %s' % (
             type(self).__name__,
-            self.input_dir,
+            self.input_dir(),
         ))
         self.process_recursively('.')
 
