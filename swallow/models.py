@@ -65,10 +65,6 @@ class Matching(models.Model):
     # :param file: file which holds the values which computes the matching
     file = models.FileField(upload_to='importomatic')
 
-    # :param first_matching: even if the django field is an M2M, only
-    #                        populate with the first result
-    first_matching = models.BooleanField(default=False)
-
     def __unicode__(self):
         return self.name
 
@@ -76,8 +72,6 @@ class Matching(models.Model):
         """Returns values or the first value if ``first_matching`` is
         set that matches the facade according the matching xml file.
         """
-        first_matching = first_matching or self.first_matching
-
         self.file.open()
         xml = etree.parse(self.file)
         self.file.close()
