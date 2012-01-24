@@ -133,7 +133,7 @@ class DefaultConfig(object):
                         try:
                             builder.process_and_save()
                         except Exception, exception:
-                            msg = 'wrappers generations for'
+                            msg = 'builder processing of'
                             msg += ' %s failed' % input_file_path
                             log_exception(
                                 exception,
