@@ -3,6 +3,7 @@ import logging
 from util import log_exception, logger
 
 from django.db.models.fields import AutoField
+from django.db import IntegrityError
 
 
 logger = logging.getLogger()
@@ -52,6 +53,7 @@ class BaseBuilder(object):
         """
         instances = []
         for mapper in self.Mapper._iter_mappers(self.path, self.fd):
+            logger.info('processing of %s mapper starts' % mapper)
             if not self.skip(mapper):
                 instance = self.__get_or_create(mapper)
                 instances.append(instance)
@@ -70,7 +72,11 @@ class BaseBuilder(object):
                                 field.name
                             )
                 # save to be able to populate m2m fields
-                instance.save()
+                try:
+                    instance.save()
+                except IntegrityError, e:
+                    log_exception(e, 'database save')
+                    continue
 
                 # populate m2m fields
                 for field in instance._meta.many_to_many:
