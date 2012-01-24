@@ -18,7 +18,7 @@ def log_exception(
     ):
     """log exception and move file if provided"""
     tb = traceback.format_exc()
-    msg = '%s failed with %s' % (
+    msg = '%s with %s' % (
         action,
         exception
     )
