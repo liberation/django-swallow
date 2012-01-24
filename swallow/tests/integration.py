@@ -25,24 +25,24 @@ class ArticleMapper(XmlMapper):
 
     @property
     def title(self):
-        title = self.item.find('title').text
+        title = self._item.find('title').text
         return title
 
     @property
     def author(self):
-        return self.item.find('author').text
+        return self._item.find('author').text
 
     @property
     def source(self):
-        return self.item.find('source').text
+        return self._item.find('source').text
 
     @property
     def section(self):
-        return self.item.find('section').text
+        return self._item.find('section').text
 
     @property
     def weight(self):
-        return self.item.find('weight').text
+        return self._item.find('weight').text
 
     @property
     def modified_by(self):

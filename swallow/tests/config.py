@@ -64,12 +64,12 @@ class ConfigTests(TestCase):
 
             @property
             def _instance_filters(self):
-                return {'title': self.item.text}
+                return {'title': self._item.text}
 
             @classmethod
             def _iter_mappers(cls, path, f):
                 root = super(SkipMapper, cls)._iter_mappers(path, f)[0]
-                for item in root.item.iterfind('item'):
+                for item in root._item.iterfind('item'):
                     yield cls(item, path)
 
             kind = 'kind'
@@ -94,7 +94,7 @@ class ConfigTests(TestCase):
             Populator = SkipPopulator
 
             def skip(self, mapper):
-                txt = mapper.item.text
+                txt = mapper._item.text
                 return txt in ('1', '2')
 
             def instance_is_locally_modified(self, instance):
