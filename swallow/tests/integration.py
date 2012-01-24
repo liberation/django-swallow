@@ -243,12 +243,12 @@ class IntegrationTests(TestCase):
             self.assertEqual(1, aggregate['count'])
 
     def _test_input_is_empty(self):
-        path = os.path.join(CURRENT_PATH, 'import', 'ArticleConfig', 'input')
+        path = ArticleConfig.input_dir()
         l = len(os.listdir(path))
         self.assertEqual(0, l)
 
     def _test_done_has_files(self):
-        path = os.path.join(CURRENT_PATH, 'import', 'ArticleConfig', 'done')
+        path = ArticleConfig.done_dir()
         l = len(os.listdir(path))
         self.assertNotEqual(0, l)
 
