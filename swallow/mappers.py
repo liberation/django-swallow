@@ -16,8 +16,8 @@ class XmlMapper(BaseMapper):
     :meth:`DefaultConfig.populate`"""
 
     def __init__(self, item, path):
-        self.item = item
-        self.path = path
+        self._item = item
+        self._path = path
 
     @classmethod
     def _iter_mappers(cls, file_path, f):
@@ -26,4 +26,4 @@ class XmlMapper(BaseMapper):
         return [cls(root, file_path)]
 
     def __str__(self):
-        return '<%s %s>' % (type(self).__name__, self.path)
+        return '<%s %s>' % (type(self).__name__, self._path)
