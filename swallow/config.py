@@ -18,7 +18,7 @@ class DefaultConfig(object):
     @classmethod
     def input_dir(cls):
         """Directory where to looks for new files to process"""
-        class_name = cls.__name__
+        class_name = cls.__name__.lower()
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
@@ -29,7 +29,7 @@ class DefaultConfig(object):
     @classmethod
     def work_dir(cls):
         """Directory where to store files when they are processed"""
-        class_name = cls.__name__
+        class_name = cls.__name__.lower()
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
@@ -40,7 +40,7 @@ class DefaultConfig(object):
     @classmethod
     def done_dir(cls):
         """Directory where to store files after they are processed"""
-        class_name = cls.__name__
+        class_name = cls.__name__.lower()
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
@@ -51,7 +51,7 @@ class DefaultConfig(object):
     @classmethod
     def error_dir(cls):
         """Directory where to store files when their import failed"""
-        class_name = cls.__name__
+        class_name = cls.__name__.lower()
         path = os.path.join(
             settings.SWALLOW_DIRECTORY,
             class_name,
