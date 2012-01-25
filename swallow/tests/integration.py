@@ -88,7 +88,7 @@ class ArticlePopulator(BasePopulator):
                 article=self._instance,
                 section=section,
                 weight=self._mapper.weight,
-                )
+            )
             through.save()
 
     @Matching.from_matching(
