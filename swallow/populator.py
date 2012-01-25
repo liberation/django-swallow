@@ -19,8 +19,7 @@ class BasePopulator(object):
             _fields_if_instance_modified_from_last_import = None
 
     This class will threat creation, update and update of modified instance
-    the same way by populating every field with the value set in the the
-    facade.
+    the same way by populating every field with the value set in the mapper.
     """
 
 
@@ -32,12 +31,12 @@ class BasePopulator(object):
 
     @property
     def _fields_one_to_one(self):
-        """Fields listed here will be set directly from facade
+        """Fields listed here will be set directly from mapper
 
         This property should always be set.
 
         If ``_fields_one_to_one = ['foo']`` then ``instance.foo`` will be
-        equal to ``facade.foo``.
+        equal to ``mapper.foo``.
 
         Set to ``None`` if you want all the fields to be updated."""
         raise NotImplementedError()

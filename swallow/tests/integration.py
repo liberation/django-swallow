@@ -49,6 +49,18 @@ class ArticleMapper(XmlMapper):
         return 'swallow'
 
 
+def _fetch_section_from_constant(constant_name):
+    return Section.objects.get(name=constant_name)
+
+
+def _fetch_section_from_constants(constant_names):
+    sections = []
+    for name in constant_names:
+        section = Section.objects.get(name=name)
+        sections.append(section)
+    return sections
+
+
 class ArticlePopulator(BasePopulator):
 
     _fields_one_to_one = ('title', 'author', 'modified_by')
@@ -63,40 +75,29 @@ class ArticlePopulator(BasePopulator):
         'primary_sections',
     )
 
-    def kind(self):
-        self._from_matching(
-            'SOURCES',
-            'kind'
-        )
+    @Matching.from_matching('SOURCES', first_match=True)
+    def kind(self, kind):
+        self._instance.kind = kind
 
-    def sections(self):
-        self._from_matching(
-            'SECTIONS',
-            'sections',
-            create_through=self.create_article_to_section,
-            get_or_create_related=self.get_or_create_section_from_name,
-        )
+    @Matching.from_matching(
+        'SECTIONS',
+        post_process_match=_fetch_section_from_constants)
+    def sections(self, sections):
+        for section in sections:
+            through = ArticleToSection(
+                article=self._instance,
+                section=section,
+                weight=self._mapper.weight,
+                )
+            through.save()
 
-    def primary_sections(self):
-        self._from_matching(
-            'SECTIONS',
-            'primary_sections',
-            first_matching=True,
-            get_or_create_related=self.get_or_create_section_from_name,
+    @Matching.from_matching(
+        'SECTIONS',
+        first_match=True,
+        post_process_match=_fetch_section_from_constant,
         )
-
-    def get_or_create_section_from_name(self, name):
-        section, created = Section.objects.get_or_create(name=name)
-        return section, created
-
-    def create_article_to_section(self, section):
-        through = ArticleToSection(
-            article=self._instance,
-            section=section,
-            weight=self._mapper.weight,
-        )
-        through.save()
-        return through
+    def primary_sections(self, section):
+        self._instance.primary_sections.add(section)
 
 
 class ArticleBuilder(BaseBuilder):
@@ -179,6 +180,9 @@ class IntegrationTests(TestCase):
         shutil.copytree(import_initial, import_dir)
 
         settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
+
+        # Setup Matching models
+
         matching = Matching(name='SECTIONS')
         f = open(os.path.join(CURRENT_PATH, 'sections.xml'))
         content = f.read()
@@ -198,6 +202,13 @@ class IntegrationTests(TestCase):
             ContentFile(content),
             save=True
         )
+
+        # Setup Sections
+
+        Section(name='FUN').save()
+        Section(name='SPORT').save()
+        Section(name='SPORT DE GLISSE').save()
+        Section(name='SPORT INDIVIDUEL').save()
 
     def _test_articles(self, expected_values):
         self.assertEqual(3, Article.objects.count())

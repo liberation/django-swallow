@@ -49,7 +49,7 @@ xml = """
 </maps>"""
 
 
-DummyFacade = namedtuple('DummyFacade', ('title', 'suptitle'))
+DummyMapper = namedtuple('DummyMapper', ('title', 'suptitle'))
 
 
 class MatchingTests(TestCase):
@@ -67,21 +67,21 @@ class MatchingTests(TestCase):
         cls.matching = matching
 
     def test_match_1(self):
-        facade = DummyFacade('foo', 'baz')
-        value = self.matching.match(facade)
+        mapper = DummyMapper('foo', 'baz')
+        value = self.matching.match(mapper)
         self.assertEqual(['FOOBARBAZ', 'FOOBARBAZ2', 'FOO'], value)
 
     def test_match_2(self):
-        facade = DummyFacade('foo', 'nothing')
-        value = self.matching.match(facade)
+        mapper = DummyMapper('foo', 'nothing')
+        value = self.matching.match(mapper)
         self.assertEqual(['FOO'], value)
 
     def test_match_3(self):
-        facade = DummyFacade('bar', 'nothing')
-        value = self.matching.match(facade)
+        mapper = DummyMapper('bar', 'nothing')
+        value = self.matching.match(mapper)
         self.assertEqual(['BAR'], value)
 
     def test_match_loose(self):
-        facade = DummyFacade('nothing', u'éèçàæœ et voilà')
-        value = self.matching.match(facade)
+        mapper = DummyMapper('nothing', u'éèçàæœ et voilà')
+        value = self.matching.match(mapper)
         self.assertEqual(['FOOBARBAZ'], value)

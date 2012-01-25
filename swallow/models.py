@@ -2,6 +2,7 @@
 
 import os
 import time
+import functools
 
 from lxml import etree
 
@@ -19,7 +20,7 @@ def normalize(string):
 class Matching(models.Model):
     """Represents a matching file. A matching file is an xml file (really)
     that let you build matching rules for your
-    :class:`swallow.facades.BaseFacade` class used in ``process``
+    :class:`swallow.mappers.BaseMapper` class used in ``process``
     through :meth:`swallow.config.DefaultConfig.populate_from_matching`
 
     See also :meth:`swallow.models.Matching.match`.
@@ -45,7 +46,7 @@ class Matching(models.Model):
     This define a list of  ``map`` elements. Each map define a value
     to be outputed as ``column`` element. If one ``set`` element is
     a match the ``column`` value should be returned. Each set defines
-    rules. Each elements of a set should have the name of a facade
+    rules. Each elements of a set should have the name of a mapper
     property. Each of them is a rule, they are ANDed to form the set-rule.
     If several element inside a set have the same name, they are ORed togethe
     before being ANDed as rules of the set.
@@ -54,7 +55,7 @@ class Matching(models.Model):
 
       .. highlight: python
 
-        (facade.title == "foo" or facade.title == "bar") and facade.suptitle == "baz"
+        (mapper.title == "foo" or mapper.title == "bar") and mapper.suptitle == "baz"
 
     See also :meth:`swallow.models.Matching.match`.
     """
@@ -68,16 +69,42 @@ class Matching(models.Model):
     def __unicode__(self):
         return self.name
 
-    def match(self, facade, first_matching=False):
-        """Returns values or the first value if ``first_matching`` is
-        set that matches the facade according the matching xml file.
+    class from_matching(object):
+        """Populator method decorator that inject in the decorated method the
+        result of the match modulo the result of ``post_process_match``
+        callback"""
+
+        def __init__(
+                self, matching_name,
+                first_match=False,
+                post_process_match=None
+            ):
+            self.matching_name = matching_name
+            self.first_match = first_match
+            self.post_process_match = post_process_match
+
+        def __call__(self, func):
+            this = self
+            @functools.wraps(func)
+            def wrapper(self):
+                matching = Matching.objects.get(name=this.matching_name)
+                match = matching.match(self._mapper, this.first_match)
+                if this.post_process_match is not None:
+                    match = this.post_process_match(match)
+                values = func(self, match)
+                return values
+            return wrapper
+
+    def match(self, mapper, first_match=False):
+        """Returns values or the first value if ``first_match`` is
+        set that matches the mapper according the matching xml file.
         """
         self.file.open()
         xml = etree.parse(self.file)
         self.file.close()
 
         output = []  # holds values to be returned
-                     # only used if ``first_matching`` is ``False``
+                     # only used if ``first_match`` is ``False``
 
         for map in xml.iterfind('//map'):
             # a possible return value
@@ -104,7 +131,7 @@ class Matching(models.Model):
                     else:
                         loose = False
                     v1 = rule.text
-                    v2 = getattr(facade, name)
+                    v2 = getattr(mapper, name)
                     if loose:
                         v1 = normalize(v1)
                         v2 = normalize(v2)
@@ -124,8 +151,8 @@ class Matching(models.Model):
                     # the set matched no need to test other set
                     # for another match one is enough
                     # if we get here the set matched so the map matched
-                    if first_matching:
-                        return [column]
+                    if first_match:
+                        return column
 
                     matched_set = True
                     break  # no need to try another set
