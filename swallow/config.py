@@ -99,6 +99,11 @@ class DefaultConfig(object):
         Recursivly inspect :attribute:`DefaultConfig.input_dir`, loads
         builder class through :method:`DefaultConfig.load_builder` and
         run processing"""
+
+        instances = None
+        if hasattr(self, 'postprocess'):
+            instances = []
+
         # avoids circular imports
         from util import move_file, log_exception, logger
 
@@ -131,7 +136,10 @@ class DefaultConfig(object):
                     logger.info('match %s' % partial_file_path)
                     if not self.dryrun:
                         try:
-                            builder.process_and_save()
+                            if hasattr(self, 'postprocess'):
+                                instances.append(builder.process_and_save())
+                            else:
+                                builder.process_and_save()
                         except Exception, exception:
                             msg = 'builder processing of'
                             msg += ' %s failed' % input_file_path
@@ -152,3 +160,5 @@ class DefaultConfig(object):
                                 input_file_path,
                                 done
                             )
+        if hasattr(self, 'postprocess'):
+            self.postprocess(instances)

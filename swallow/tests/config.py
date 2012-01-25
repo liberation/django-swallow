@@ -15,7 +15,7 @@ from django.test import TestCase
 CURRENT_PATH = os.path.dirname(__file__)
 
 
-class ConfigTests(TestCase):
+class BaseSwallowTests(TestCase):
 
     def setUp(self):
         settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
@@ -28,6 +28,10 @@ class ConfigTests(TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.import_dir)
+
+
+
+class ConfigTests(BaseSwallowTests):
 
     def test_dry_run(self):
         """Test that dryrun doesn't create new instance and
@@ -112,3 +116,34 @@ class ConfigTests(TestCase):
         config.run()
 
         self.assertEqual(2, Article.objects.count())
+
+
+class PostProcessTest(BaseSwallowTests):
+
+
+    class PostProcessConfig(DefaultConfig):
+
+        def load_builder(self, path, fd):
+            class PostProcessBuilder(object):
+
+                def process_and_save(self):
+                    return True
+
+            return PostProcessBuilder()
+
+        def instance_is_locally_modified(self, instance):
+            return False
+
+        def postprocess(self, instances):
+            self.__flag__ = instances
+
+    def test_postprocess(self):
+
+        config = self.PostProcessConfig()
+        config.run()
+
+        self.assertTrue(hasattr(config, '__flag__'))
+        self.assertTrue(isinstance(config.__flag__, list))
+        self.assertEqual(3, len(config.__flag__))
+        for x in config.__flag__:
+            self.assertTrue(x)
