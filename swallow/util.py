@@ -52,12 +52,12 @@ def move_file(src, dst):
 def get_configurations():
     CONFIGURATIONS = {}
     for configuration_module in SWALLOW_CONFIGURATION_MODULES:
-        from config import DefaultConfig  # avoids circular imports
+        from config import BaseConfig  # avoids circular imports
         modules = import_module(configuration_module)
         for cls in vars(modules).values():
 
             if (isinstance(cls, type)
-                and issubclass(cls, DefaultConfig)
-                and cls is not DefaultConfig):
+                and issubclass(cls, BaseConfig)
+                and cls is not BaseConfig):
                 CONFIGURATIONS[cls.__name__] = cls
     return CONFIGURATIONS

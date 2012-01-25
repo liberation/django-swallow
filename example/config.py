@@ -1,6 +1,6 @@
 from lxml import etree
 
-from swallow.config import DefaultConfig
+from swallow.config import BaseConfig
 from swallow.mappers import BaseMapper
 from swallow.populator import BasePopulator
 from swallow.builder import BaseBuilder
@@ -51,7 +51,7 @@ class FeedBuilder(BaseBuilder):
         return False
 
 
-class Github(DefaultConfig):
+class Github(BaseConfig):
 
     def load_builder(self, path, f):
         if path.endswith('.atom'):

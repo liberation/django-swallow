@@ -21,7 +21,7 @@ class Matching(models.Model):
     """Represents a matching file. A matching file is an xml file (really)
     that let you build matching rules for your
     :class:`swallow.mappers.BaseMapper` class used in ``process``
-    through :meth:`swallow.config.DefaultConfig.populate_from_matching`
+    through :meth:`swallow.config.BaseConfig.populate_from_matching`
 
     See also :meth:`swallow.models.Matching.match`.
 

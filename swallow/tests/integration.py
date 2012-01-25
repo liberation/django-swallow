@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.db.models import Count
 
-from swallow.config import DefaultConfig
+from swallow.config import BaseConfig
 from swallow.mappers import XmlMapper
 from swallow.populator import BasePopulator
 from swallow.models import Matching
@@ -115,7 +115,7 @@ class ArticleBuilder(BaseBuilder):
         return instance.modified_by != 'swallow'
 
 
-class ArticleConfig(DefaultConfig):
+class ArticleConfig(BaseConfig):
 
     def load_builder(self, path, fd):
         filename = os.path.basename(path)

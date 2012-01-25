@@ -4,7 +4,7 @@ import shutil
 from . import Article
 from integration import ArticleConfig
 
-from swallow.config import DefaultConfig
+from swallow.config import BaseConfig
 from swallow.mappers import XmlMapper
 from swallow.populator import BasePopulator
 from swallow.builder import BaseBuilder
@@ -40,7 +40,7 @@ class ConfigTests(BaseSwallowTests):
         class ArticleBuilder(BaseBuilder):
             pass
 
-        class ArticleConfig(DefaultConfig):
+        class ArticleConfig(BaseConfig):
 
             def load_builder(self, path, fd):
                 return ArticleBuilder(path, fd)
@@ -104,7 +104,7 @@ class ConfigTests(BaseSwallowTests):
             def instance_is_locally_modified(self, instance):
                 return False
 
-        class SkipConfig(DefaultConfig):
+        class SkipConfig(BaseConfig):
 
             def load_builder(self, path, fd):
                 return SkipBuilder(path, fd)
@@ -121,7 +121,7 @@ class ConfigTests(BaseSwallowTests):
 class PostProcessTest(BaseSwallowTests):
 
 
-    class PostProcessConfig(DefaultConfig):
+    class PostProcessConfig(BaseConfig):
 
         def load_builder(self, path, fd):
             class PostProcessBuilder(object):

@@ -13,7 +13,7 @@ class BaseMapper(object):
 
 class XmlMapper(BaseMapper):
     """Xml file mapper to access it's properties passed to
-    :meth:`DefaultConfig.populate`"""
+    :meth:`BaseConfig.populate`"""
 
     def __init__(self, item, path):
         self._item = item

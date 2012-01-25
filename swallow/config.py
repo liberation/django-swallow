@@ -8,11 +8,11 @@ from django.conf import settings
 import settings
 
 
-class DefaultConfig(object):
+class BaseConfig(object):
     """Main class to define a new import.
 
     This class is meant to be inherited and *not* used as is. You should at
-    least override :method:`swallow.config.DefaultConfig.load_builder`.
+    least override :method:`swallow.config.BaseConfig.load_builder`.
     """
 
     @classmethod
@@ -93,11 +93,11 @@ class DefaultConfig(object):
         return input, work, error, done
 
     def process_recursively(self, path):
-        """Recusively inspect :attribute:`DefaultConfig.input_dir`
+        """Recusively inspect :attribute:`BaseConfig.input_dir`
         and process files
 
-        Recursivly inspect :attribute:`DefaultConfig.input_dir`, loads
-        builder class through :method:`DefaultConfig.load_builder` and
+        Recursivly inspect :attribute:`BaseConfig.input_dir`, loads
+        builder class through :method:`BaseConfig.load_builder` and
         run processing"""
 
         instances = None
