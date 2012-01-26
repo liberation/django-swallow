@@ -1,4 +1,5 @@
 import logging
+from functools import wraps
 
 from util import log_exception, logger
 
@@ -123,3 +124,21 @@ class BaseBuilder(object):
             instance = self.Model(**mapper._instance_filters)
             logger.info('created instance')
         return instance
+
+
+class from_builder(object):
+
+    def __init__(self, BuilderClass):
+        self.BuilderClass = BuilderClass
+
+    def __call__(self, func):
+        this = self
+        @wraps(func)
+        def wrapper(self):
+            photos = []
+            builders_args = getattr(self._mapper, func.__name__)
+            for args in builders_args:
+                builder = this.BuilderClass(*args)
+                photos.extend(builder.process_and_save())
+            return func(self, photos)
+        return wrapper
