@@ -158,6 +158,13 @@ class Matching(models.Model):
                     break  # no need to try another set
             if matched_set:
                 output.append(column)
+        if not output:
+            default = dict(xml.getroot().items()).get('default', None)
+            if default is not None:
+                if first_match:
+                    return default
+                else:
+                    output.append(default)
         return output
 
 

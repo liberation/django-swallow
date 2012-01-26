@@ -9,7 +9,7 @@ from swallow.models import Matching
 
 
 xml = """
-<maps>
+<maps default="DEFAULT">
   <map>
     <column>FOOBARBAZ</column>
     <set>
@@ -85,3 +85,13 @@ class MatchingTests(TestCase):
         mapper = DummyMapper('nothing', u'éèçàæœ et voilà')
         value = self.matching.match(mapper)
         self.assertEqual(['FOOBARBAZ'], value)
+
+    def test_match_default(self):
+        mapper = DummyMapper('random', u'thing')
+        value = self.matching.match(mapper)
+        self.assertEqual(['DEFAULT'], value)
+
+    def test_match_default_frist_match(self):
+        mapper = DummyMapper('random', u'thing')
+        value = self.matching.match(mapper, first_match=True)
+        self.assertEqual('DEFAULT', value)
