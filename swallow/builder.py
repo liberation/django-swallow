@@ -104,9 +104,11 @@ class BaseBuilder(object):
                     # that's all folks :)
             except IntegrityError, e:
                 log_exception(e, 'database save')
+            except Exception, e:
+                log_exception(e, 'unknown exception')
         return instances
 
-    def __init__(self, path, fd, config=None):
+    def __init__(self, path, fd, config):
         self.path = path
         self.fd = fd
         self.config = config
