@@ -117,10 +117,10 @@ class ArticleBuilder(BaseBuilder):
 
 class ArticleConfig(BaseConfig):
 
-    def load_builder(self, path, fd):
-        filename = os.path.basename(path)
+    def load_builder(self, partial_file_path, fd):
+        filename = os.path.basename(partial_file_path)
         if re.match(r'^\w+\.xml$', filename) is not None:
-            return ArticleBuilder(path, fd)
+            return ArticleBuilder(partial_file_path, fd, self)
         return None
 
     def instance_is_locally_modified(self, instance):

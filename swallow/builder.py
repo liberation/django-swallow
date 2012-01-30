@@ -93,9 +93,10 @@ class BaseBuilder(object):
             # that's all folks :)
         return instances
 
-    def __init__(self, path, fd):
+    def __init__(self, path, fd, config=None):
         self.path = path
         self.fd = fd
+        self.config = config
 
     def __set_field_name(self, instance, populator, mapper, field_name):
         if field_name in populator._fields_one_to_one:

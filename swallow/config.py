@@ -59,21 +59,40 @@ class BaseConfig(object):
         )
         return path
 
-    def load_builder(self, *args):
+    def load_builder(self, partial_file_path, fd):
         """Should load a :class`:swallow.builder.BaseBuilder` class and return
-        it for processing
+        it for processing.
 
         If you did not override
-        :method:`swallow.builder.BaseBuilder.process_and_save`
-        the arguments are ``path`` of the file and a python
-        ``file`` object ``f``.
+        :method:`swallow.config.BaseConfig.run` or
+        :method:`swallow.config.BaseConfig.process_recursively`
+        the arguments are ``partial_file_path``.
 
-        If the method returns ``None`` no processing will be done.
+        If the method returns ``None`` the file will be skipped.
         """
         raise NotImplementedError()
 
     def __init__(self, dryrun=False):
         self.dryrun = dryrun
+
+        self.files = []  # this is the current list of files processed
+                         # by swallow
+                         # FIXME: explain how it works
+
+    def open(self, relative_path):
+        from util import move_file
+        path = os.path.join(
+            self.input_dir(),
+            relative_path
+        )
+        work = os.path.join(self.work_dir(), relative_path)
+        move_file(
+            path,
+            work
+        )
+        self.files.append(relative_path)
+        f = open(work)
+        return f
 
     def run(self):
         """Process recursivly using the BFS algorithm"""
@@ -117,6 +136,7 @@ class BaseConfig(object):
             os.makedirs(error)
         if not os.path.exists(done):
             os.makedirs(done)
+        # input_dir should exists
 
         logger.info('work_path %s' % work)
 
@@ -127,9 +147,10 @@ class BaseConfig(object):
             if os.path.isdir(input_file_path):
                 self.process_recursively(partial_file_path)
             else:
-                fd = open(input_file_path)
-                builder = self.load_builder(input_file_path, fd)
+                fd = self.open(partial_file_path)
+                builder = self.load_builder(partial_file_path, fd)
                 if builder is None:
+                    fd.close()
                     logger.info('skip file %s' % input_file_path)
                     continue
                 else:
@@ -141,24 +162,41 @@ class BaseConfig(object):
                             else:
                                 builder.process_and_save()
                         except Exception, exception:
+                            fd.close()
                             msg = 'builder processing of'
                             msg += ' %s failed' % input_file_path
                             log_exception(
                                 exception,
                                 msg
                             )
-                            fd.close()
-                            move_file(
-                                input_file_path,
-                                error,
-                            )
+                            for p in self.files:
+                                work = os.path.join(self.work_dir(), p)
+                                error = os.path.join(self.error_dir(), p)
+                                move_file(
+                                    work,
+                                    error
+                                )
+                            self.files = []
                         else:
-                            msg = 'success'
-                            logger.info(msg)
                             fd.close()
+                            for p in self.files:
+                                work = os.path.join(self.work_dir(), p)
+                                done = os.path.join(self.done_dir(), p)
+                                move_file(
+                                    work,
+                                    done
+                                )
+                            self.files = []
+                    else:
+                        fd.close()
+                        for p in self.files:
+                            work = os.path.join(self.work_dir(), p)
+                            input = os.path.join(self.input_dir(), p)
                             move_file(
-                                input_file_path,
-                                done
+                                work,
+                                input
                             )
+                        self.files = []
+
         if hasattr(self, 'postprocess'):
             self.postprocess(instances)
