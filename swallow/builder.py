@@ -5,6 +5,7 @@ from util import log_exception, logger
 
 from django.db.models.fields import AutoField
 from django.db import IntegrityError
+from django.db.transaction import commit_manually
 
 
 logger = logging.getLogger()
@@ -50,47 +51,59 @@ class BaseBuilder(object):
 
     def process_and_save(self):
         """Builds :class:`swallow.mappers.Mapper` classes, instantiate models
-        and populate them with the help of a populator
+        and populate them with the help of a populator.
+
+        if ``managed``` is set to ``False`` the function won't try to commit
+        transaction.
         """
         instances = []
-        for mapper in self.Mapper._iter_mappers(self.path, self.fd):
-            logger.info('processing of %s mapper starts' % mapper)
-            if not self.skip(mapper):
-                instance = self.__get_or_create(mapper)
-                instances.append(instance)
-                modified = self.instance_is_locally_modified(instance)
-                populator = self.Populator(mapper, instance, modified)
-                for field in instance._meta.fields:
-                    if isinstance(field, AutoField):
-                        # can't set auto field
-                        pass
-                    else:
-                        if populator._to_set(field.name):
-                            self.__set_field_name(
-                                instance,
-                                populator,
-                                mapper,
-                                field.name
-                            )
-                # save to be able to populate m2m fields
-                try:
-                    instance.save()
-                except IntegrityError, e:
-                    log_exception(e, 'database save')
-                    continue
 
-                # populate m2m fields
-                for field in instance._meta.many_to_many:
-                    if populator._to_set(field.name):
-                        # m2m are always populated by populator methods
-                        method = getattr(populator, field.name, None)
-                        if method is not None:
-                            f = getattr(instance, field.name)
-                            f.clear()  # XXX: add a hook to overide this behaviour
-                            method()
-                        # else ``method`` is not set no need to set this field
-                logger.info('saved %s@%s: %s' % (type(instance), instance.id, instance))
-            # that's all folks :)
+        for mapper in self.Mapper._iter_mappers(self.path, self.fd):
+            try:
+                with commit_manually():
+                    logger.info('processing of %s mapper starts' % mapper)
+                    if not self.skip(mapper):
+                        instance = self.__get_or_create(mapper)
+                        instances.append(instance)
+                        modified = self.instance_is_locally_modified(instance)
+                        populator = self.Populator(mapper, instance, modified)
+                        for field in instance._meta.fields:
+                            if isinstance(field, AutoField):
+                                # can't set auto field
+                                pass
+                            else:
+                                if populator._to_set(field.name):
+                                    self.__set_field_name(
+                                        instance,
+                                        populator,
+                                        mapper,
+                                        field.name
+                                    )
+                        # save to be able to populate m2m fields
+                        instance.save()
+                        # populate m2m fields
+                        for field in instance._meta.many_to_many:
+                            if populator._to_set(field.name):
+                                # m2m are always populated by populator methods
+                                method = getattr(populator, field.name, None)
+                                if method is not None:
+                                    f = getattr(instance, field.name)
+                                    f.clear()  # XXX: add a hook to overide
+                                               # this behaviour
+                                    method()
+                                # else ``method`` is not set
+                                # no need to set this field
+                        msg = 'saved %s@%s: %s' % (
+                            type(instance),
+                            instance.id,
+                            instance
+                        )
+                        logger.info(msg)
+                    else:
+                        logger.info('skip %s mapper' % mapper)
+                    # that's all folks :)
+            except IntegrityError, e:
+                log_exception(e, 'database save')
         return instances
 
     def __init__(self, path, fd, config=None):
