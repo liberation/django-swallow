@@ -3,6 +3,8 @@ import os
 
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
+from django.contrib.admin.options import csrf_protect_m
+from django.utils.datastructures import SortedDict
 
 from sneak.admin import SneakAdmin
 
@@ -118,6 +120,25 @@ class FileSystemAdmin(SneakAdmin):
             if not request.user.has_perm(perm):
                 del actions[action]
         return actions
+
+    @csrf_protect_m
+    def changelist_view(self, request, extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+        directory = request.GET.get('directory', '')
+        d = directory.split('/')
+
+        directories = SortedDict()
+        for index, directory in enumerate(d):
+            url = '/'.join(d[:index+1])
+            directories[directory] = url
+        extra_context.update({
+            'directories': directories,
+        })
+        return super(FileSystemAdmin, self).changelist_view(
+            request,
+            extra_context=extra_context
+        )
 
 if settings.SWALLOW_CONFIGURATION_MODULES:
     admin.site.register([VirtualFileSystemElement], FileSystemAdmin)
