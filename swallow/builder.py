@@ -6,6 +6,8 @@ from util import log_exception, logger
 from django.db.models.fields import AutoField
 from django.db import IntegrityError
 from django.db.transaction import commit_manually
+from django.db.transaction import rollback
+from django.db.transaction import commit
 
 
 logger = logging.getLogger()
@@ -57,10 +59,10 @@ class BaseBuilder(object):
         transaction.
         """
         instances = []
-
+        error = False
         for mapper in self.Mapper._iter_mappers(self.path, self.fd):
             try:
-                with commit_manually():
+                with open('/tmp/foo.txt', 'w'):
                     logger.info('processing of %s mapper starts' % mapper)
                     if not self.skip(mapper):
                         instance = self.__get_or_create(mapper)
@@ -73,12 +75,20 @@ class BaseBuilder(object):
                                 pass
                             else:
                                 if populator._to_set(field.name):
-                                    self.__set_field_name(
-                                        instance,
-                                        populator,
-                                        mapper,
-                                        field.name
-                                    )
+                                    if field.name in populator._fields_one_to_one:
+                                        # it's a mapper property
+                                        value = getattr(mapper, field.name)
+                                        setattr(instance, field.name, value)
+                                    else:
+                                        # it may be a populator method
+                                        method = getattr(populator, field.name, None)
+                                        if method is not None:
+                                            method()  # CHECKME: This doesn't return a value so
+                                                      # that both populator methods type (m2m & property)
+                                                      # work the same way, that said it makes
+                                                      # creating methods for property settings complex
+                                                      # in simple cases
+                                        # else this field doesn't need to be populated
                         # save to be able to populate m2m fields
                         instance.save()
                         # populate m2m fields
@@ -93,6 +103,7 @@ class BaseBuilder(object):
                                     method()
                                 # else ``method`` is not set
                                 # no need to set this field
+                        commit()
                         msg = 'saved %s@%s: %s' % (
                             type(instance),
                             instance.id,
@@ -103,31 +114,19 @@ class BaseBuilder(object):
                         logger.info('skip %s mapper' % mapper)
                     # that's all folks :)
             except IntegrityError, e:
+                rollback()
+                error = True
                 log_exception(e, 'database save')
             except Exception, e:
+                rollback()
+                error = True
                 log_exception(e, 'unknown exception')
-        return instances
+        return instances, error
 
     def __init__(self, path, fd, config):
         self.path = path
         self.fd = fd
         self.config = config
-
-    def __set_field_name(self, instance, populator, mapper, field_name):
-        if field_name in populator._fields_one_to_one:
-            # it's a mapper property
-            value = getattr(mapper, field_name)
-            setattr(instance, field_name, value)
-        else:
-            # it may be a populator method
-            method = getattr(populator, field_name, None)
-            if method is not None:
-                method()  # CHECKME: This doesn't return a value so
-                          # that both populator methods type (m2m & property)
-                          # work the same way, that said it makes
-                          # creating methods for property settings complex
-                          # in simple cases
-            # else this field doesn't need to be populated
 
     def __get_or_create(self, mapper):
         # get or create without saving

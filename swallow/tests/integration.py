@@ -1,6 +1,6 @@
 import os, shutil, copy, re
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 from swallow import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
@@ -170,9 +170,39 @@ expected_values_after_update_with_modification['Article Boxe']['author'] = 'godz
 expected_values_after_update_with_modification['Article Bilboquet']['author'] = 'godzilla'
 
 
-class IntegrationTests(TestCase):
+def setup_matchings_and_sections():
+    # Setup Matching models
+    matching = Matching(name='SECTIONS')
+    f = open(os.path.join(CURRENT_PATH, 'sections.xml'))
+    content = f.read()
+    f.close()
+    matching.file.save(
+        'swallow/sections.xml',
+        ContentFile(content),
+        save=True
+    )
 
-    def setUp(cls):
+    matching = Matching(name='SOURCES')
+    f = open(os.path.join(CURRENT_PATH, 'sources.xml'))
+    content = f.read()
+    f.close()
+    matching.file.save(
+        'swallow/sources.xml',
+        ContentFile(content),
+        save=True
+    )
+
+    # Setup Sections
+    Section(name='FUN').save()
+    Section(name='SPORT').save()
+    Section(name='SPORT DE GLISSE').save()
+    Section(name='SPORT INDIVIDUEL').save()
+
+
+
+class IntegrationTests(TransactionTestCase):
+
+    def setUp(self):
         import_dir = os.path.join(CURRENT_PATH, 'import')
         if os.path.exists(import_dir):
             shutil.rmtree(import_dir)
@@ -181,34 +211,10 @@ class IntegrationTests(TestCase):
 
         settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
 
-        # Setup Matching models
+        setup_matchings_and_sections()
 
-        matching = Matching(name='SECTIONS')
-        f = open(os.path.join(CURRENT_PATH, 'sections.xml'))
-        content = f.read()
-        f.close()
-        matching.file.save(
-            'swallow/sections.xml',
-            ContentFile(content),
-            save=True
-        )
-
-        matching = Matching(name='SOURCES')
-        f = open(os.path.join(CURRENT_PATH, 'sources.xml'))
-        content = f.read()
-        f.close()
-        matching.file.save(
-            'swallow/sources.xml',
-            ContentFile(content),
-            save=True
-        )
-
-        # Setup Sections
-
-        Section(name='FUN').save()
-        Section(name='SPORT').save()
-        Section(name='SPORT DE GLISSE').save()
-        Section(name='SPORT INDIVIDUEL').save()
+    def tearDown(self):
+        Article.objects.all().delete()
 
     def _test_articles(self, expected_values):
         self.assertEqual(3, Article.objects.count())

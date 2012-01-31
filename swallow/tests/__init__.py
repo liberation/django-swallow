@@ -33,3 +33,4 @@ class Article(models.Model):
 from models import *
 from integration import *
 from config import *
+from transactions import *

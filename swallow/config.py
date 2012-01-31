@@ -79,6 +79,8 @@ class BaseConfig(object):
                          # by swallow
                          # FIXME: explain how it works
 
+        self.on_error = False  # this should reset at for each file
+
     def open(self, relative_path):
         from util import move_file
         path = os.path.join(
@@ -156,11 +158,13 @@ class BaseConfig(object):
                 else:
                     logger.info('match %s' % partial_file_path)
                     if not self.dryrun:
+                        error = False
                         try:
                             if hasattr(self, 'postprocess'):
-                                instances.append(builder.process_and_save())
+                                _, error = builder.process_and_save()
+                                instances.append(_)
                             else:
-                                builder.process_and_save()
+                                _, error = builder.process_and_save()
                         except Exception, exception:
                             fd.close()
                             msg = 'builder processing of'
@@ -179,12 +183,16 @@ class BaseConfig(object):
                             self.files = []
                         else:
                             fd.close()
+                            if error:
+                                target = self.error_dir()
+                            else:
+                                target = self.done_dir()
                             for p in self.files:
                                 work = os.path.join(self.work_dir(), p)
-                                done = os.path.join(self.done_dir(), p)
+                                t = os.path.join(target, p)
                                 move_file(
                                     work,
-                                    done
+                                    t
                                 )
                             self.files = []
                     else:

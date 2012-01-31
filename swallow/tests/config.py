@@ -3,6 +3,7 @@ import shutil
 
 from . import Article
 from integration import ArticleConfig
+from base import BaseSwallowTests
 
 from swallow.config import BaseConfig
 from swallow.mappers import XmlMapper
@@ -10,25 +11,8 @@ from swallow.populator import BasePopulator
 from swallow.builder import BaseBuilder
 from swallow import settings
 
-from django.test import TestCase
 
 CURRENT_PATH = os.path.dirname(__file__)
-
-
-class BaseSwallowTests(TestCase):
-
-    def setUp(self):
-        settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
-
-        self.import_dir = os.path.join(CURRENT_PATH, 'import')
-        if os.path.exists(self.import_dir):
-            shutil.rmtree(self.import_dir)
-        import_initial = os.path.join(CURRENT_PATH, 'import.initial')
-        shutil.copytree(import_initial, self.import_dir)
-
-    def tearDown(self):
-        shutil.rmtree(self.import_dir)
-
 
 
 class ConfigTests(BaseSwallowTests):
@@ -43,7 +27,7 @@ class ConfigTests(BaseSwallowTests):
         class ArticleConfig(BaseConfig):
 
             def load_builder(self, path, fd):
-                return ArticleBuilder(path, fd)
+                return ArticleBuilder(path, fd, self)
 
             def instance_is_modified(self, instance):
                 return False
@@ -107,7 +91,7 @@ class ConfigTests(BaseSwallowTests):
         class SkipConfig(BaseConfig):
 
             def load_builder(self, path, fd):
-                return SkipBuilder(path, fd)
+                return SkipBuilder(path, fd, self)
 
             def instance_is_locally_modified(self, instance):
                 return False
@@ -120,14 +104,13 @@ class ConfigTests(BaseSwallowTests):
 
 class PostProcessTest(BaseSwallowTests):
 
-
     class PostProcessConfig(BaseConfig):
 
         def load_builder(self, path, fd):
             class PostProcessBuilder(object):
 
                 def process_and_save(self):
-                    return True
+                    return True, False  # a dummy value and error_flag
 
             return PostProcessBuilder()
 
