@@ -267,7 +267,7 @@ class IntegrationTests(TransactionTestCase):
     def _test_done_has_files(self):
         path = ArticleConfig.done_dir()
         l = len(os.listdir(path))
-        self.assertNotEqual(0, l)
+        self.assertEqual(3, l)
 
     def _update_imports(self):
         # simulate an update
