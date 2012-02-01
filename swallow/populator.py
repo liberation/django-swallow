@@ -10,7 +10,7 @@ class BasePopulator(object):
 
     The simplest ``Populator`` class you can implement is the following:
 
-      .. highlight:: python
+      .. code-block:: python
 
         class Populator(BasePopulator):
 
