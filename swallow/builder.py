@@ -1,5 +1,6 @@
 import logging
 from functools import wraps
+from contextlib import contextmanager
 
 from util import log_exception, logger
 
@@ -11,6 +12,16 @@ from django.db.transaction import commit
 
 
 logger = logging.getLogger()
+
+
+@contextmanager
+def dummy():
+    """Dummy context manager used when the current builder is nested.
+
+    Dummy context manager inside another builder process_and_save
+    call most likely through a call to :function:`swallow.builder.from_builder`.
+    """
+    yield
 
 
 class BaseBuilder(object):
@@ -28,7 +39,7 @@ class BaseBuilder(object):
 
     @property
     def Model(self):
-        """Django Model class to instatiate and populate."""
+        """Django Model class to instantiate and populate."""
         raise NotImplementedError()
 
     @property
@@ -59,74 +70,131 @@ class BaseBuilder(object):
         transaction.
         """
         instances = []
+
+        # only non-managed code need to be managed
+        manager = dummy if self.managed else commit_manually
+
         error = False
         for mapper in self.Mapper._iter_mappers(self.path, self.fd):
-            try:
-                with open('/tmp/foo.txt', 'w'):
-                    logger.info('processing of %s mapper starts' % mapper)
-                    if not self.skip(mapper):
-                        instance = self.__get_or_create(mapper)
-                        instances.append(instance)
-                        modified = self.instance_is_locally_modified(instance)
-                        populator = self.Populator(mapper, instance, modified)
-                        for field in instance._meta.fields:
-                            if isinstance(field, AutoField):
-                                # can't set auto field
-                                pass
-                            else:
-                                if populator._to_set(field.name):
-                                    if field.name in populator._fields_one_to_one:
-                                        # it's a mapper property
-                                        value = getattr(mapper, field.name)
-                                        setattr(instance, field.name, value)
-                                    else:
-                                        # it may be a populator method
-                                        method = getattr(populator, field.name, None)
-                                        if method is not None:
-                                            method()  # CHECKME: This doesn't return a value so
-                                                      # that both populator methods type (m2m & property)
-                                                      # work the same way, that said it makes
-                                                      # creating methods for property settings complex
-                                                      # in simple cases
-                                        # else this field doesn't need to be populated
-                        # save to be able to populate m2m fields
-                        instance.save()
-                        # populate m2m fields
-                        for field in instance._meta.many_to_many:
+            logger.info('processing of %s mapper starts' % mapper)
+            if not self.skip(mapper):
+                with manager():
+                    current_mapper_on_error = False
+                    instance = self.__get_or_create(mapper)
+                    instances.append(instance)
+                    modified = self.instance_is_locally_modified(instance)
+                    populator = self.Populator(
+                        mapper,
+                        instance,
+                        modified,
+                        self.config
+                    )
+                    for field in instance._meta.fields:
+                        if isinstance(field, AutoField):
+                            # can't set auto field
+                            pass
+                        else:
                             if populator._to_set(field.name):
-                                # m2m are always populated by populator methods
-                                method = getattr(populator, field.name, None)
-                                if method is not None:
-                                    f = getattr(instance, field.name)
-                                    f.clear()  # XXX: add a hook to overide
-                                               # this behaviour
-                                    method()
-                                # else ``method`` is not set
-                                # no need to set this field
-                        commit()
+                                try:
+                                    self.set_field(
+                                        populator,
+                                        instance,
+                                        mapper,
+                                        field.name
+                                    )
+                                except Exception, e:
+                                    msg = 'exception raised during '
+                                    msg += 'field population'
+                                    log_exception(e, msg)
+                                    current_mapper_on_error = True
+                                    error = True
+                    # save to be able to populate m2m fields
+                    try:
+                        instance.save()
+                    except IntegrityError, e:
+                        msg = 'exception raised during '
+                        msg += 'instance save'
+                        log_exception(e, msg)
+                        current_mapper_on_error = True
+                    # populate m2m fields
+                    for field in instance._meta.many_to_many:
+                        if populator._to_set(field.name):
+                            try:
+                                self.set_m2m_field(
+                                    populator,
+                                    instance,
+                                    field.name
+                                )
+                            except Exception, e:
+                                msg = 'exception raised during '
+                                msg += 'm2m field population'
+                                log_exception(e, msg)
+                                current_mapper_on_error = True
+                                error = True
+                    if current_mapper_on_error:
+                        if not self.managed:
+                            msg = 'ROLLBACK %s for %s' % (self, mapper)
+                            logger.critical(msg)
+                            rollback()
+                        msg = '%s builder raised an exception ' % self
+                        msg += 'in process_and_save'
+                        logger.error(msg)
+                    else:
+                        if not self.managed:
+                            logger.info('COMMIT %s' % self)
+                            commit()
                         msg = 'saved %s@%s: %s' % (
                             type(instance),
                             instance.id,
                             instance
                         )
                         logger.info(msg)
-                    else:
-                        logger.info('skip %s mapper' % mapper)
-                    # that's all folks :)
-            except IntegrityError, e:
-                rollback()
-                error = True
-                log_exception(e, 'database save')
-            except Exception, e:
-                rollback()
-                error = True
-                log_exception(e, 'unknown exception')
+            else:
+                logger.info('skip %s mapper' % mapper)
+            # that's all folks :)
         return instances, error
 
-    def __init__(self, path, fd, config):
+    def set_field(self, populator, instance, mapper, field_name):
+        if field_name in populator._fields_one_to_one:
+            # it's a mapper property
+            value = getattr(mapper, field_name)
+            setattr(instance, field_name, value)
+        else:
+            # it may be a populator method
+            method = getattr(populator, field_name, None)
+            if method is not None:
+                method()  # CHECKME: This doesn't return a value so
+                          # that both populator methods type (m2m & property)
+                          # work the same way, that said it makes
+                          # creating methods for property settings complex
+                          # in simple cases
+            # else this field doesn't need to be populated
+
+    def set_m2m_field(self, populator, instance, field_name):
+        # m2m are always populated by populator methods
+        method = getattr(populator, field_name, None)
+        if method is not None:
+            f = getattr(instance, field_name)
+            f.clear()  # XXX: add a hook to overide
+                       # this behaviour
+            method()
+        # else ``method`` is not set
+        # no need to set this field
+
+
+    def __init__(self, path, fd, config, managed=False):
+        # :param path: path of the file relative to the config input_dir
         self.path = path
+        # :param fd: opened file descriptor of the above file
         self.fd = fd
+        # :param config: config that runs this builder
+        #                it can be the config of a parent builder
         self.config = config
+        # :param managed: if the builder is in a managed transaction block
+        #                 it should be set to True. If it is not managed
+        #                 Then it should take care of starting and ending
+        #                 transactions for each mapper.
+        self.managed = managed
 
     def __get_or_create(self, mapper):
         # get or create without saving
@@ -153,7 +221,16 @@ class from_builder(object):
             photos = []
             builders_args = getattr(self._mapper, func.__name__)
             for args in builders_args:
+                args = list(args)
+                # append current config
+                args.append(self._config)
+                # append managed = True
+                args.append(True)
                 builder = this.BuilderClass(*args)
-                photos.extend(builder.process_and_save())
+                p, error = builder.process_and_save()
+                if error:
+                    msg = '%s raised an exception' % builder
+                    raise Exception(msg)
+                photos.extend(p)
             return func(self, photos)
         return wrapper

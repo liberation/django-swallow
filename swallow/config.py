@@ -148,6 +148,10 @@ class BaseConfig(object):
 
             if os.path.isdir(input_file_path):
                 self.process_recursively(partial_file_path)
+            elif not os.path.exists(input_file_path):
+                # the file might have been already moved
+                # by a nested builder
+                continue
             else:
                 fd = self.open(partial_file_path)
                 builder = self.load_builder(partial_file_path, fd)
