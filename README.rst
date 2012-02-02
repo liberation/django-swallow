@@ -16,3 +16,6 @@ In django settings define the following constants:
 - If you want to use the admin set ``SWALLOW_CONFIGURATION_MODULES``
 
 You will need `django-sneak <https://github.com/amirouche/django-sneak>`_.
+
+- `forge <https://github.com/liberation/django-swallow>`_
+- `documentation <http://readthedocs.org/docs/django-swallow/en/latest/>`_
