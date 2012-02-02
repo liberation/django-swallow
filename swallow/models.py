@@ -27,7 +27,7 @@ class Matching(models.Model):
 
     An example matching xml file follow:
 
-      .. highligh: xml
+      .. code-block: xml
 
         <maps>
           <map>
@@ -53,7 +53,7 @@ class Matching(models.Model):
     For instance the first set in the example matching file generate a code
     equivalent to:
 
-      .. highlight: python
+      .. code-block: python
 
         (mapper.title == "foo" or mapper.title == "bar") and mapper.suptitle == "baz"
 
