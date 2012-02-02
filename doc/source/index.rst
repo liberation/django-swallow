@@ -13,10 +13,10 @@ XML files and other documents even linked documents in database.
   `Alan Kay <http://en.wikipedia.org/wiki/Alan_Kay>`_
 
 A simple import is defined as a set four classes ``Configuration`` and
-the *triptych* ``Builder``, ``Mapper`` and ``Populator``. Each of which deals 
-with specific problems. 
-While it still makes a lot of classes to define, it strives for more *reusability* 
-with `separatation of concerns <http://en.wikipedia.org/wiki/Separation_of_concerns>`_.
+a ``Builder`` and a triptych ``Mapper``,  ``Populator`` and ``Model``. Each of 
+which deals with specific problems. While it still makes a lot of classes to 
+define, it strives for more *reusability* with 
+`separatation of concerns <http://en.wikipedia.org/wiki/Separation_of_concerns>`_.
 
 *Nested imports* or *Recursive imports* which deals with several documents 
 linked to a main document will require for each document type a *triptych*. For 
@@ -41,9 +41,12 @@ Once it is shipped you will be able to::
    pip install django-swallow
 
 Until then you can tinker with the example project found in the 
-`forge <https://github.com/liberation/django-swallow/tree/master/example>`_::
+`forge <https://github.com/liberation/django-swallow/tree/master/example>`_
+use the following command to retrieve the code::
 
   git clone https://github.com/liberation/django-swallow.git
+
+Don't forget to have a look at the walkthrough.
 
 Project configuration
 ---------------------
@@ -54,14 +57,14 @@ not be needed, read carefully.
 ``SWALLOW_DIRECTORY``
 ~~~~~~~~~~~~~~~~~~~~~
 
-**If** you use default ``Configuration`` swallow directories you **must**
+**If** you use default ``Configuration`` swallow directories, you **must**
 define this path. It will be used as the root directory for every configuration
-that has not defined any custom swallow directory.
+that has not defined custom swallow directory.
 
 ``SWALLOW_CONFIGURATION_MODULES``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It's similar in purpose to Django's  ``INSTALLED_APPS``, it must a be a list
+It's similar in purpose to Django's ``INSTALLED_APPS``, it must be a list
 of monitored imports.
 
 **If** you want to monitor an import in the admin, the module path
@@ -73,8 +76,7 @@ Contents
 .. toctree::
    :maxdepth: 6
 
-   getting_started
-   full_simple_example
+   walkthrough
    configuration
    mapper
    populator
@@ -93,7 +95,7 @@ Glossary
 
   Configuration
 
-    A ``Configuration`` class is the root class defining you imports.
+    A ``Configuration`` class is the root class defining your imports.
 
   Mapper
 
@@ -105,7 +107,7 @@ Glossary
 
   Swallow Directory
 
-    A swallow directory is a one of ``input``, ``work``, ``done``, ``error``
+    A Swallow directory is a one of ``input``, ``work``, ``done``, ``error``
     used respectivly by Django Swallow, to look for new files to import, store
     files during import, store completed import files, store erronous files.
 

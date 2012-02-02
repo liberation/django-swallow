@@ -55,4 +55,4 @@ class Github(BaseConfig):
 
     def load_builder(self, path, f):
         if path.endswith('.atom'):
-            return FeedBuilder(path, f)
+            return FeedBuilder(path, f, self)
