@@ -12,10 +12,10 @@ XML files and other documents even linked documents in database.
   « Simple things should be simple, complex things should be possible. » 
   `Alan Kay <http://en.wikipedia.org/wiki/Alan_Kay>`_
 
-A simple import is defined as a set four classes ``Configuration`` and
-a ``Builder`` and a triptych ``Mapper``,  ``Populator`` and ``Model``. Each of 
-which deals with specific problems. While it still makes a lot of classes to 
-define, it strives for more *reusability* with 
+A simple import is defined as a set four classes ``Configuration``, 
+a ``Builder`` linked to a triptych ``Mapper``, ``Populator`` and ``Model``. 
+Each of which deals with specific problems. While it still makes a lot of 
+classes to define, it strives for more *reusability* with 
 `separatation of concerns <http://en.wikipedia.org/wiki/Separation_of_concerns>`_.
 
 *Nested imports* or *Recursive imports* which deals with several documents 
@@ -59,7 +59,8 @@ not be needed, read carefully.
 
 **If** you use default ``Configuration`` swallow directories, you **must**
 define this path. It will be used as the root directory for every configuration
-that has not defined custom swallow directory.
+that has not defined custom swallow directory. If you don't know, most likely
+you will need to define this constant.
 
 ``SWALLOW_CONFIGURATION_MODULES``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,10 +78,9 @@ Contents
    :maxdepth: 6
 
    walkthrough
-   configuration
-   mapper
-   populator
+   matching
    nested_builders
+   advanced
    api/swallow
 
 Glossary
