@@ -1,5 +1,5 @@
-Walkthrough
-===========
+Walkthrough Tutorial
+====================
 
 We will study the example application. It can be found in the 
 `forge <https://github.com/liberation/django-swallow/tree/master/example>`_
@@ -180,7 +180,7 @@ instance fields are matched one to one with their name as mapper properties,
 which means that ``an_instance.some`` will have its values set to 
 ``a_mapper.some``.
 If the instance exists prior to import, no field will be set. If the 
-instance existed prior to current import and instance was modified, not field
+instance existed prior to current import and instance was modified, no field
 will be set too.
 
 NB: Builder class has a way to know if an instance model was created or not, 
@@ -209,9 +209,9 @@ Nested Builders chapters.
 Builder
 -------
 
-The *builder* class connects together a ``Mapper``, ``Populator`` and 
-``Model``. It requests values from the ``Mapper`` and populates ``Model`` 
-instances with the help of the ``Populator``.
+The builder class connects together a mapper, populator and 
+model. It requests values from the mapper and populates model 
+instances with the help of the Populator.
 
 A builder class in its short form can look like:
 

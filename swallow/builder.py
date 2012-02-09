@@ -16,7 +16,9 @@ logger = logging.getLogger()
 
 @contextmanager
 def dummy():
-    """Dummy context manager used when the current builder is nested.
+    """Dummy context manager used when the current builder is nested,
+    and does not need to handle transaction since it handled by a parent
+    builder.
 
     Dummy context manager inside another builder process_and_save
     call most likely through a call to :function:`swallow.builder.from_builder`.
@@ -44,14 +46,14 @@ class BaseBuilder(object):
 
     @property
     def Populator(self):
-        """Class that populates instances see
+        """Class that knows how to populate a model instance
         :class:`swallow.populator.Populator`.
         """
         raise NotImplementedError()
 
     def instance_is_locally_modified(self, instance):
         """Should return a boolean. Used to know whether the instance
-        was modified locally or not. The swallow use this value to know
+        was modified locally or not. Swallow use this value to know
         if it should or not populate the instance
         """
         raise NotImplementedError()
@@ -63,8 +65,8 @@ class BaseBuilder(object):
         raise NotImplementedError()
 
     def process_and_save(self):
-        """Builds :class:`swallow.mappers.Mapper` classes, instantiate models
-        and populate them with the help of a populator.
+        """Builds :class:`swallow.mappers.BaseMapper` classes, instantiate
+        models and populate them with the help of a populator.
 
         if ``managed``` is set to ``False`` the function won't try to commit
         transaction.
@@ -210,6 +212,14 @@ class BaseBuilder(object):
 
 
 class from_builder(object):
+    """Decorator object used to inject a builder results
+    as parameters of a populator method.
+
+    It gets the results of the related mapper property,
+    create a builder for each values returned and inject
+    the resulting instances as a parameter of the decorated
+    populator method.
+    """
 
     def __init__(self, BuilderClass):
         self.BuilderClass = BuilderClass

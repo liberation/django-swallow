@@ -9,7 +9,7 @@ You might like to group configuration, builder and related triptychs in a
 module like it is done in the example application. You most likely will 
 circuvent this convention if you need to do factorisation.
 
-If you have several imports you might want to store all configuration in one 
+If you have several imports you might want to store all import modules in one 
 Django application. A possible solution to deal with this situation 
 is to use a django application to store all the imports within a module named 
 after its import feature. If we used this convention in the example 
@@ -87,5 +87,3 @@ instead the populator reference mapper and model instance respectivly as
 ``self._mapper`` and ``self._instance``. You don't necessarily need 
 to populate only the field for which the method was called, that said
 it's not recommanded.
-
-

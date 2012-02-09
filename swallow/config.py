@@ -97,7 +97,7 @@ class BaseConfig(object):
         return f
 
     def run(self):
-        """Process recursivly using the BFS algorithm"""
+        """Process recursivly ``input_dir``"""
         from util import logger
         logger.info('run %s in %s' % (
             type(self).__name__,
@@ -115,7 +115,7 @@ class BaseConfig(object):
 
     def process_recursively(self, path):
         """Recusively inspect :attribute:`BaseConfig.input_dir`
-        and process files
+        and process files using BFS
 
         Recursivly inspect :attribute:`BaseConfig.input_dir`, loads
         builder class through :method:`BaseConfig.load_builder` and

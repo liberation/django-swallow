@@ -7,6 +7,10 @@ from util import get_configurations
 
 
 class QueryResult(ListQueryResult):
+    """Represent a query result, basicly it provides
+    dummy values for the admin so that it doesn't complain too
+    much"""
+
     def filter(self, *args, **kwargs):
         return self._clone()
 
@@ -18,6 +22,7 @@ class QueryResult(ListQueryResult):
 
 
 class VirtualFileSystemQuerySet(ListQueryResult):
+    """Custom QuerySet object to list VFS elements"""
 
     def filter(self, *args, **kwargs):
         # directory in the point of view of the admin user
@@ -84,6 +89,8 @@ class VirtualFileSystemQuerySet(ListQueryResult):
 
 
 class SwallowConfigurationQuerySet(ListQueryResult):
+    """Custom QuerySet object to list Swallow configurations listed
+    in SWALLOW_CONFIGURATION_MODULES setting."""
 
     def filter(self, *args, **kwargs):
         CONFIGURATIONS = get_configurations()

@@ -22,6 +22,7 @@ admin.site.register(Matching)
 #
 
 class VirtualFileSystemChangeListView(ChangeList):
+    """Override the changelist for VFS elements"""
 
     def get_query_set(self):
         # filetering is already done by VirtualFilesystemModelAdmin
@@ -75,6 +76,7 @@ delete.short_description = 'Delete'
 
 
 class FileSystemAdmin(SneakAdmin):
+    """Custom admin class for VFS elements"""
     QuerySet = VirtualFileSystemQuerySet
 
     list_display = ('name', 'creation_date', 'modification_date')
@@ -93,7 +95,7 @@ class FileSystemAdmin(SneakAdmin):
         return qs
 
     def has_add_permission(self, request):
-        return False
+        return False  # there is no way to add an element with admin
 
     def get_actions(self, request):
         """
@@ -123,6 +125,8 @@ class FileSystemAdmin(SneakAdmin):
 
     @csrf_protect_m
     def changelist_view(self, request, extra_context=None):
+        # inject the path information in the template
+        # for rendering in the breadcrumb
         if extra_context is None:
             extra_context = {}
         directory = request.GET.get('directory', '')
@@ -149,13 +153,15 @@ if settings.SWALLOW_CONFIGURATION_MODULES:
 #
 
 class SwalllowConfigurationAdmin(SneakAdmin):
+    """Custom Admin for swallow configurations"""
     QuerySet = SwallowConfigurationQuerySet
 
     list_display = ('name', 'status', 'input', 'done', 'error', )
     actions = None
 
     def has_add_permission(self, request):
-        return False
+        return False  # There is no way to add a configuration from
+                      # the admin
 
 if settings.SWALLOW_CONFIGURATION_MODULES:
     admin.site.register([SwallowConfiguration], SwalllowConfigurationAdmin)

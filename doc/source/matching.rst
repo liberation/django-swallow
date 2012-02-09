@@ -3,7 +3,7 @@ Matching
 
 Matching is facility provided by Django Swallow that allows to build 
 population algorithm that are a bit more advanced than one to one population 
-already available through ``Populator`` class. It also allows any user having
+already available through a populator class. It also allows any user having
 access to the admin area to tweak the algorithm.
 
 Matching Model
@@ -18,19 +18,19 @@ An example matching xml file follows:
 
   .. code-block: xml
 
-        <maps default="ninja">
-          <map>
-            <column>OUTPUT</column>
-            <set>
-               <title>foo</title>
-               <title>bar</title>
-               <suptitle>baz</suptitle>
-            </set>
-            <set>
-               <suptitle loose-compare="yes">éèçàæœ et voilà</suptitle>
-            </set>
-          </map>
-        </maps>
+  <maps default="ninja">
+    <map>
+      <column>OUTPUT</column>
+        <set>
+          <title>foo</title>
+          <title>bar</title>
+          <suptitle>baz</suptitle>
+        </set>
+      <set>
+        <suptitle loose-compare="yes">éèçàæœ et voilà</suptitle>
+      </set>
+    </map>
+  </maps>
 
 It defines a list of  ``map`` elements. Each map defines a value
 to be outputed as ``column`` element. If one ``set`` element is
@@ -44,7 +44,7 @@ equivalent to:
 
   .. code-block: python
 
-    (mapper.title == "foo" or mapper.title == "bar") and mapper.suptitle == "baz"
+  (mapper.title == "foo" or mapper.title == "bar") and mapper.suptitle == "baz"
 
 If no map matchs and if a value is defined as default attribute in root elements, 
 it is returned.

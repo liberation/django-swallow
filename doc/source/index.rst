@@ -19,10 +19,11 @@ classes to define, it strives for more *reusability* with
 `separatation of concerns <http://en.wikipedia.org/wiki/Separation_of_concerns>`_.
 
 *Nested imports* or *Recursive imports* which deals with several documents 
-linked to a main document will require for each document type a *triptych*. For 
-instance, let's consider an html file linked to pictures and several feeds, such 
-an import will be defined with a ``Configuration`` class and three *triptych*. 
-There is no limit on nesting degree except Python runtime limits.
+linked to a main document will require for each document type a builder and a 
+*triptych*. For instance, let's consider an html file linked to pictures and 
+several feeds, such an import will be defined with a ``Configuration`` class 
+and three *triptych*. There is no limit on nesting degree except Python runtime 
+limits.
 
 An import can be run by a **cron**, preferably `fcron <http://fcron.free.fr/>`_ 
 using :mod:`swallow.management.commands.swallow` command.
@@ -46,12 +47,12 @@ use the following command to retrieve the code::
 
   git clone https://github.com/liberation/django-swallow.git
 
-Don't forget to have a look at the walkthrough.
+Don't forget to have a look at the `Walkthrough Tutorial`_.
 
 Project configuration
 ---------------------
 
-Define the following constants in you settings file, they may or may
+Define the following constants in project settings file, they may or may
 not be needed, read carefully.
 
 ``SWALLOW_DIRECTORY``
