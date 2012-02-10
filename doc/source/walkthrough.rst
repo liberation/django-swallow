@@ -22,7 +22,7 @@ a LOC feature of 59.
 Configuration
 -------------
 
-A *Configuration* class defines an import feature, you will most likely name 
+A configuration class defines an import feature, you will most likely name 
 it after the job the import get done.
 
 This class specialize on several aspects of the import:
@@ -45,7 +45,7 @@ settings. Inside this directory Swallow will create a folder named after
 the configuration class, in this case ``github``, and store in it ``work``, 
 ``error``, ``done`` the imported files. 
 
-  .. warning::
+.. note::
 
   You have to create the ``input`` directory yourself
 
@@ -183,8 +183,11 @@ If the instance exists prior to import, no field will be set. If the
 instance existed prior to current import and instance was modified, no field
 will be set too.
 
-NB: Builder class has a way to know if an instance model was created or not, 
-and if it wasn't created whether it was modified by the application or not.
+
+.. note::
+
+  Builder class has a way to know if an instance model was created or not, 
+  and if it wasn't created whether it was modified by the application or not.
 
 The populator found in the example is similar:
 

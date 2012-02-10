@@ -16,7 +16,7 @@ The matching file allows you to define matching rules.
 
 An example matching xml file follows:
 
-  .. code-block: xml
+.. code-block:: xml
 
   <maps default="ninja">
     <map>
@@ -42,7 +42,7 @@ before being ANDed as rules of the set.
 For instance the first set in the example matching file generate a code
 equivalent to:
 
-  .. code-block: python
+.. code-block:: python
 
   (mapper.title == "foo" or mapper.title == "bar") and mapper.suptitle == "baz"
 

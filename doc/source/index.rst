@@ -47,7 +47,7 @@ use the following command to retrieve the code::
 
   git clone https://github.com/liberation/django-swallow.git
 
-Don't forget to have a look at the `Walkthrough Tutorial`_.
+Don't forget to have a look at the walkthrough tutorial.
 
 Project configuration
 ---------------------
