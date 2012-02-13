@@ -91,7 +91,7 @@ class MatchingTests(TestCase):
         value = self.matching.match(mapper)
         self.assertEqual(['DEFAULT'], value)
 
-    def test_match_default_frist_match(self):
+    def test_match_default_first_match(self):
         mapper = DummyMapper('random', u'thing')
         value = self.matching.match(mapper, first_match=True)
         self.assertEqual('DEFAULT', value)
