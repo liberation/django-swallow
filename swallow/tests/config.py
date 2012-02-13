@@ -103,6 +103,8 @@ class ConfigTests(BaseSwallowTests):
 
 
 class PostProcessTest(BaseSwallowTests):
+    """Check that the postprocessing step is called when
+    it exists"""
 
     class PostProcessConfig(BaseConfig):
 
