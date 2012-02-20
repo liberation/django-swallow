@@ -5,8 +5,6 @@ import logging
 from django.conf import settings
 
 
-import settings
-
 
 class BaseConfig(object):
     """Main class to define a new import.

@@ -5,13 +5,13 @@ from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.options import csrf_protect_m
 from django.utils.datastructures import SortedDict
+from django.conf import settings
 
 from sneak.admin import SneakAdmin
 
 from query import VirtualFileSystemQuerySet, SwallowConfigurationQuerySet
 from models import VirtualFileSystemElement, SwallowConfiguration, Matching
 from util import get_configurations
-import settings
 
 
 admin.site.register(Matching)
@@ -144,7 +144,7 @@ class FileSystemAdmin(SneakAdmin):
             extra_context=extra_context
         )
 
-if settings.SWALLOW_CONFIGURATION_MODULES:
+if getattr(settings, SWALLOW_CONFIGURATION_MODULES, []):
     admin.site.register([VirtualFileSystemElement], FileSystemAdmin)
 
 
@@ -163,5 +163,5 @@ class SwalllowConfigurationAdmin(SneakAdmin):
         return False  # There is no way to add a configuration from
                       # the admin
 
-if settings.SWALLOW_CONFIGURATION_MODULES:
+if getattr(settings, SWALLOW_CONFIGURATION_MODULES, []):
     admin.site.register([SwallowConfiguration], SwalllowConfigurationAdmin)
