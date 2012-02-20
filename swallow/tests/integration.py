@@ -5,6 +5,10 @@ from swallow import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.db.models import Count
+try:
+    from django.test.utils import override_settings
+except ImportError:
+    from override_settings import override_settings
 
 from swallow.config import BaseConfig
 from swallow.mappers import XmlMapper
@@ -209,7 +213,7 @@ class IntegrationTests(TransactionTestCase):
         import_initial = os.path.join(CURRENT_PATH, 'import.initial')
         shutil.copytree(import_initial, import_dir)
 
-        settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
+        self.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
 
         setup_matchings_and_sections()
 
@@ -278,59 +282,64 @@ class IntegrationTests(TransactionTestCase):
 
     def test_run_without_command(self):
         """Tests full configuration without commands"""
-        config = ArticleConfig()
-        config.run()
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            config = ArticleConfig()
+            config.run()
 
-        self._test_articles(expected_values_initial)
-        self._test_input_is_empty()
-        self._test_done_has_files()
+            self._test_articles(expected_values_initial)
+            self._test_input_is_empty()
+            self._test_done_has_files()
 
     def test_run_with_update(self):
         """Check that update of instances is properly done"""
-        config = ArticleConfig()
-        # first import
-        config.run()
 
-        self._update_imports()
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            config = ArticleConfig()
+            # first import
+            config.run()
 
-        # second import
-        config.run()
+            self._update_imports()
 
-        self._test_articles(expected_values_after_update)
-        self._test_input_is_empty()
-        self._test_done_has_files()
+            # second import
+            config.run()
+
+            self._test_articles(expected_values_after_update)
+            self._test_input_is_empty()
+            self._test_done_has_files()
 
     def test_run_with_update_and_modification(self):
         """Check that update is properly done when instances in db were
         modified"""
-        config = ArticleConfig()
-        config.run()
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            config = ArticleConfig()
+            config.run()
 
-        # modify Articles
-        for article in Article.objects.all():
-            article.modified_by = 'user'
-            article.author = 'godzilla'
-            article.save()
+            # modify Articles
+            for article in Article.objects.all():
+                article.modified_by = 'user'
+                article.author = 'godzilla'
+                article.save()
 
-        self._update_imports()
+            self._update_imports()
 
-        # second import
-        config.run()
+            # second import
+            config.run()
 
-        self._test_articles(expected_values_after_update_with_modification)
-        self._test_input_is_empty()
-        self._test_done_has_files()
+            self._test_articles(expected_values_after_update_with_modification)
+            self._test_input_is_empty()
+            self._test_done_has_files()
 
     def test_run_with_command(self):
         """Tests full configuration with command"""
-        call_command(
-            'swallow',
-            'swallow.tests.integration.ArticleConfig'
-        )
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            call_command(
+                'swallow',
+                'swallow.tests.integration.ArticleConfig'
+            )
 
-        self._test_articles(expected_values_initial)
-        self._test_input_is_empty()
-        self._test_done_has_files()
+            self._test_articles(expected_values_initial)
+            self._test_input_is_empty()
+            self._test_done_has_files()
 
     def tearDown(self):
         import_dir = os.path.join(CURRENT_PATH, 'import')

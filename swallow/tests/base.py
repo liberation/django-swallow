@@ -12,7 +12,7 @@ CURRENT_PATH = os.path.dirname(__file__)
 class BaseSwallowTests(TransactionTestCase):
 
     def setUp(self):
-        settings.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
+        self.SWALLOW_DIRECTORY = os.path.join(CURRENT_PATH, 'import')
 
         self.import_dir = os.path.join(CURRENT_PATH, 'import')
         if os.path.exists(self.import_dir):

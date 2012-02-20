@@ -1,6 +1,11 @@
 import os
 import shutil
 
+try:
+    from django.test.utils import override_settings
+except ImportError:
+    from override_settings import override_settings
+
 from . import Article
 from integration import ArticleConfig
 from base import BaseSwallowTests
@@ -32,16 +37,17 @@ class ConfigTests(BaseSwallowTests):
             def instance_is_modified(self, instance):
                 return False
 
-        config = ArticleConfig(dryrun=True)
-        config.run()
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            config = ArticleConfig(dryrun=True)
+            config.run()
 
-        content = os.listdir(config.input_dir())
+            content = os.listdir(config.input_dir())
 
-        self.assertEqual(3, len(content))
-        self.assertIn('ski.xml', content)
-        self.assertIn('boxe.xml', content)
-        self.assertIn('bilboquet.xml', content)
-        self.assertEqual(0, Article.objects.count())
+            self.assertEqual(3, len(content))
+            self.assertIn('ski.xml', content)
+            self.assertIn('boxe.xml', content)
+            self.assertIn('bilboquet.xml', content)
+            self.assertEqual(0, Article.objects.count())
 
     def test_skip(self):
         """Test that if ``Builder.skip`` returns ``True`` the instance
@@ -96,10 +102,11 @@ class ConfigTests(BaseSwallowTests):
             def instance_is_locally_modified(self, instance):
                 return False
 
-        config = SkipConfig()
-        config.run()
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            config = SkipConfig()
+            config.run()
 
-        self.assertEqual(2, Article.objects.count())
+            self.assertEqual(2, Article.objects.count())
 
 
 class PostProcessTest(BaseSwallowTests):
@@ -124,11 +131,12 @@ class PostProcessTest(BaseSwallowTests):
 
     def test_postprocess(self):
 
-        config = self.PostProcessConfig()
-        config.run()
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            config = self.PostProcessConfig()
+            config.run()
 
-        self.assertTrue(hasattr(config, '__flag__'))
-        self.assertTrue(isinstance(config.__flag__, list))
-        self.assertEqual(3, len(config.__flag__))
-        for x in config.__flag__:
-            self.assertTrue(x)
+            self.assertTrue(hasattr(config, '__flag__'))
+            self.assertTrue(isinstance(config.__flag__, list))
+            self.assertEqual(3, len(config.__flag__))
+            for x in config.__flag__:
+                self.assertTrue(x)

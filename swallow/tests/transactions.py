@@ -3,6 +3,11 @@ import re
 
 from base import BaseSwallowTests
 
+try:
+    from django.test.utils import override_settings
+except ImportError:
+    from override_settings import override_settings
+
 from . import Article
 from integration import ArticleMapper
 from integration import ArticlePopulator
@@ -42,18 +47,19 @@ class TransactionsTests(BaseSwallowTests):
                     return BuilderFailsOnOneMapper(partial_file_path, fd, self)
                 return None
 
-        config = ConfigFailsOnOneMapper()
-        config.run()
+        with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
+            config = ConfigFailsOnOneMapper()
+            config.run()
 
-        # There is only two articles that made it, no more and *no less*
-        self.assertEqual(2, Article.objects.count())
+            # There is only two articles that made it, no more and *no less*
+            self.assertEqual(2, Article.objects.count())
 
-        # Check that the article in db are the one we expect
-        for article in Article.objects.all():
-            self.assertIn(article.title, ['Article Boxe', 'Article Bilboquet'])
+            # Check that the article in db are the one we expect
+            for article in Article.objects.all():
+                self.assertIn(article.title, ['Article Boxe', 'Article Bilboquet'])
 
-        # check that there is the xml file for Article is in error
-        error = config.error_dir()
-        dir = os.listdir(error)
-        self.assertEqual(1, len(dir))
-        self.assertEqual('ski.xml', dir[0])
+            # check that there is the xml file for Article is in error
+            error = config.error_dir()
+            d = os.listdir(error)
+            self.assertEqual(1, len(d))
+            self.assertEqual('ski.xml', d[0])
