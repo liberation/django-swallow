@@ -31,8 +31,8 @@ class ConfigTests(BaseSwallowTests):
 
         class ArticleConfig(BaseConfig):
 
-            def load_builder(self, path, fd):
-                return ArticleBuilder(path, fd, self)
+            def load_builder(self, builder):
+                return ArticleBuilder(builder, self)
 
             def instance_is_modified(self, instance):
                 return False
@@ -61,10 +61,10 @@ class ConfigTests(BaseSwallowTests):
                 return {'title': self._item.text}
 
             @classmethod
-            def _iter_mappers(cls, path, f):
-                root = super(SkipMapper, cls)._iter_mappers(path, f)[0]
-                for item in root._item.iterfind('item'):
-                    yield cls(item, path)
+            def _iter_mappers(cls, builder):
+                mapper = super(SkipMapper, cls)._iter_mappers(builder)[0]
+                for item in mapper._item.iterfind('item'):
+                    yield cls(item, builder.content)
 
             kind = 'kind'
             title = 'title'
@@ -87,6 +87,10 @@ class ConfigTests(BaseSwallowTests):
             Model = Article
             Populator = SkipPopulator
 
+            def __init__(self, content, config, managed=False):
+                super(SkipBuilder, self).__init__(content, config, managed)
+                self.fd = self.config.open(content)
+
             def skip(self, mapper):
                 txt = mapper._item.text
                 return txt in ('1', '2')
@@ -96,8 +100,8 @@ class ConfigTests(BaseSwallowTests):
 
         class SkipConfig(BaseConfig):
 
-            def load_builder(self, path, fd):
-                return SkipBuilder(path, fd, self)
+            def load_builder(self, builder):
+                return SkipBuilder(builder, self)
 
             def instance_is_locally_modified(self, instance):
                 return False

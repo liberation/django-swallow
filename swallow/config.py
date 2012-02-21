@@ -57,7 +57,7 @@ class BaseConfig(object):
         )
         return path
 
-    def load_builder(self, partial_file_path, fd):
+    def load_builder(self, partial_file_path):
         """Should load a :class`:swallow.builder.BaseBuilder` class and return
         it for processing.
 
@@ -151,10 +151,8 @@ class BaseConfig(object):
                 # by a nested builder
                 continue
             else:
-                fd = self.open(partial_file_path)
-                builder = self.load_builder(partial_file_path, fd)
+                builder = self.load_builder(partial_file_path)
                 if builder is None:
-                    fd.close()
                     logger.info('skip file %s' % input_file_path)
                     continue
                 else:
@@ -168,7 +166,6 @@ class BaseConfig(object):
                             else:
                                 _, error = builder.process_and_save()
                         except Exception, exception:
-                            fd.close()
                             msg = 'builder processing of'
                             msg += ' %s failed' % input_file_path
                             log_exception(
@@ -184,7 +181,6 @@ class BaseConfig(object):
                                 )
                             self.files = []
                         else:
-                            fd.close()
                             if error:
                                 target = self.error_dir()
                             else:
@@ -198,7 +194,6 @@ class BaseConfig(object):
                                 )
                             self.files = []
                     else:
-                        fd.close()
                         for p in self.files:
                             work = os.path.join(self.work_dir(), p)
                             input = os.path.join(self.input_dir(), p)

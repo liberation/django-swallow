@@ -4,9 +4,8 @@ import json
 
 class BaseMapper(object):
 
-    def __init__(self, item, path=None):
-        self._item = item
-        self._path = path
+    def __init__(self, content):
+        self._content = content
 
     @property
     def _instance_filters(self):
@@ -19,6 +18,10 @@ class XmlMapper(BaseMapper):
     """Xml file mapper to access it's properties passed to
     :meth:`BaseConfig.populate`"""
 
+    def __init__(self, item, content):
+        super(XmlMapper, self).__init__(content)  # content should be a path
+        self._item = item
+
     @classmethod
     def _iter_mappers(cls, builder):
         """The builder should have a fd property"""
@@ -27,4 +30,4 @@ class XmlMapper(BaseMapper):
         return [cls(root, builder.content)]
 
     def __str__(self):
-        return '<%s %s>' % (type(self).__name__, self._path)
+        return '<%s %s>' % (type(self).__name__, self._content)

@@ -77,7 +77,7 @@ class BaseBuilder(object):
         manager = dummy if self.managed else commit_manually
 
         error = False
-        for mapper in self.Mapper._iter_mappers(self.path, self.fd):
+        for mapper in self.Mapper._iter_mappers(self):
             logger.info('processing of %s mapper starts' % mapper)
             if not self.skip(mapper):
                 with manager():
@@ -184,11 +184,12 @@ class BaseBuilder(object):
         # no need to set this field
 
 
-    def __init__(self, path, fd, config, managed=False):
-        # :param path: path of the file relative to the config input_dir
-        self.path = path
-        # :param fd: opened file descriptor of the above file
-        self.fd = fd
+    def __init__(self, content, config, managed=False):
+        # :param content: an open variable for content storing
+        #                 it can a be file descriptor, a node in xml
+        #                 document etc. Use it to store information
+        #                 from where you will be able to retrieve data later
+        self.content = content
         # :param config: config that runs this builder
         #                it can be the config of a parent builder
         self.config = config
