@@ -110,6 +110,11 @@ class ArticleBuilder(BaseBuilder):
     Model = Article
     Populator = ArticlePopulator
 
+
+    def __init__(self, content, config, managed=False):
+        super(ArticleBuilder, self).__init__(content, config, managed)
+        self.fd = config.open(self.content)
+
     def skip(self, mapper):
         return False
 
@@ -121,10 +126,10 @@ class ArticleBuilder(BaseBuilder):
 
 class ArticleConfig(BaseConfig):
 
-    def load_builder(self, partial_file_path, fd):
+    def load_builder(self, partial_file_path):
         filename = os.path.basename(partial_file_path)
         if re.match(r'^\w+\.xml$', filename) is not None:
-            return ArticleBuilder(partial_file_path, fd, self)
+            return ArticleBuilder(partial_file_path, self)
         return None
 
     def instance_is_locally_modified(self, instance):

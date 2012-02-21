@@ -41,10 +41,10 @@ class TransactionsTests(BaseSwallowTests):
 
         class ConfigFailsOnOneMapper(ArticleConfig):
 
-            def load_builder(self, partial_file_path, fd):
+            def load_builder(self, partial_file_path):
                 filename = os.path.basename(partial_file_path)
                 if re.match(r'^\w+\.xml$', filename) is not None:
-                    return BuilderFailsOnOneMapper(partial_file_path, fd, self)
+                    return BuilderFailsOnOneMapper(partial_file_path, self)
                 return None
 
         with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):

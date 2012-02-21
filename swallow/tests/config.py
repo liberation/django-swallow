@@ -119,7 +119,7 @@ class PostProcessTest(BaseSwallowTests):
 
     class PostProcessConfig(BaseConfig):
 
-        def load_builder(self, path, fd):
+        def load_builder(self, spam):
             class PostProcessBuilder(object):
 
                 def process_and_save(self):
