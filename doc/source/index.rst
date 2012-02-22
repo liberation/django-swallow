@@ -21,9 +21,9 @@ classes to define, it strives for more *reusability* with
 *Nested imports* or *Recursive imports* which deals with several documents 
 linked to a main document will require for each document type a builder and a 
 *triptych*. For instance, let's consider an html file linked to pictures and 
-several feeds, such an import will be defined with a ``Configuration`` class 
-and three *triptych*. There is no limit on nesting degree except Python runtime 
-limits.
+several feeds, such an import will be defined with a ``Configuration`` class,
+three builders and three *triptych*. There is no limit on nesting degree except 
+Python runtime limits.
 
 An import can be run by a **cron**, preferably `fcron <http://fcron.free.fr/>`_ 
 using :mod:`swallow.management.commands.swallow` command.
