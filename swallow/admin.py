@@ -144,7 +144,7 @@ class FileSystemAdmin(SneakAdmin):
             extra_context=extra_context
         )
 
-if getattr(settings, SWALLOW_CONFIGURATION_MODULES, []):
+if getattr(settings, 'SWALLOW_CONFIGURATION_MODULES', []):
     admin.site.register([VirtualFileSystemElement], FileSystemAdmin)
 
 
@@ -163,5 +163,5 @@ class SwalllowConfigurationAdmin(SneakAdmin):
         return False  # There is no way to add a configuration from
                       # the admin
 
-if getattr(settings, SWALLOW_CONFIGURATION_MODULES, []):
+if getattr(settings, 'SWALLOW_CONFIGURATION_MODULES', []):
     admin.site.register([SwallowConfiguration], SwalllowConfigurationAdmin)
