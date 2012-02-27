@@ -229,7 +229,7 @@ class from_builder(object):
         this = self
         @wraps(func)
         def wrapper(self):
-            photos = []
+            instances = []
             builders_args = getattr(self._mapper, func.__name__)
             for args in builders_args:
                 args = list(args)
@@ -242,6 +242,6 @@ class from_builder(object):
                 if error:
                     msg = '%s raised an exception' % builder
                     raise Exception(msg)
-                photos.extend(p)
-            return func(self, photos)
+                instances.extend(p)
+            return func(self, instances)
         return wrapper
