@@ -161,8 +161,8 @@ class BaseConfig(object):
                         error = False
                         try:
                             if hasattr(self, 'postprocess'):
-                                _, error = builder.process_and_save()
-                                instances.append(_)
+                                new_instances, error = builder.process_and_save()
+                                instances.append(new_instances)
                             else:
                                 _, error = builder.process_and_save()
                         except Exception, exception:
