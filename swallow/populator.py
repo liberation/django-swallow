@@ -65,52 +65,6 @@ class BasePopulator(object):
         """
         raise NotImplementedError()
 
-    def _from_matching(
-            self,
-            matching_name,
-            field_name,
-            first_matching=False,
-            get_or_create_related=None,
-            create_through=None,
-        ):
-
-        # exceptions are catched in ``process_recursively``
-        matching = Matching.objects.get(name=matching_name)
-
-        # fetch field for ``field_name``
-        if field_name in self._instance._meta.get_all_field_names():
-            field = self._instance._meta.get_field_by_name(field_name)[0]
-        else:
-            msg = 'field %s not found on %s.' % (field_name, self._instance)
-            raise Exception(msg)
-
-        if isinstance(field, ManyToManyField):
-            # it's a M2M field
-            values = matching.match(self._mapper, first_matching)
-            for value in values:
-                if get_or_create_related is None:
-                    msg = 'Tried to set a related  property without '
-                    msg += '``get_or_create_related`` provided.'
-                    raise Exception(msg)
-                else:
-                    related, created = get_or_create_related(value)
-                    if created:
-                        related.save()
-                    if create_through is None:
-                        # let's try to add the generic M2M
-                        field = getattr(self._instance, field_name)
-                        field.add(related)
-                    else:
-                        through = create_through(
-                            related,
-                        )
-                        through.save()
-        else:
-            # since it's a property we only need one value
-            # force first_match
-            values = matching.match(self._mapper, first_matching=True)
-            setattr(self._instance, field_name, values[0])
-
     def _to_set(self, field_name):
         """Compute whether the field should be set"""
         if self._updating:
