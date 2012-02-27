@@ -11,7 +11,7 @@ class BaseMapper(object):
     def _instance_filters(self):
         """Should return a dictionnary used to get or create
         a new model instance"""
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class XmlMapper(BaseMapper):
