@@ -82,7 +82,7 @@ class BaseBuilder(object):
             if not self.skip(mapper):
                 with manager():
                     current_mapper_on_error = False
-                    instance = self.__get_or_create(mapper)
+                    instance = self.get_or_create_instance(mapper)
                     instances.append(instance)
                     modified = self.instance_is_locally_modified(instance)
                     populator = self.Populator(
@@ -199,7 +199,7 @@ class BaseBuilder(object):
         #                 transactions for each mapper.
         self.managed = managed
 
-    def __get_or_create(self, mapper):
+    def get_or_create_instance(self, mapper):
         # get or create without saving
         try:
             instance = self.Model.objects.get(
