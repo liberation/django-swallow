@@ -27,7 +27,7 @@ class XmlMapper(BaseMapper):
         """The builder should have a fd property"""
         xml = etree.parse(builder.fd)
         root = xml.getroot()
-        return [cls(root, builder.content)]
+        yield [cls(root, builder.content)]
 
     def __str__(self):
         return '<%s %s>' % (type(self).__name__, self._content)
