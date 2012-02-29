@@ -220,6 +220,7 @@ class BaseBuilder(object):
         #                         /!\ Becarful it's not guaranteed that
         #                         parent_instance was already saved by the
         #                         parent builder
+        self.parent_instance = parent_instance
 
     def get_or_create_instance(self, mapper):
         # get or create without saving
@@ -246,6 +247,7 @@ class from_builder(object):
 
     def __init__(self, BuilderClass, instance=False):
         self.BuilderClass = BuilderClass
+        self.instance=instance
 
     def __call__(self, func):
         this = self
@@ -259,7 +261,8 @@ class from_builder(object):
                 args.append(self._config)
                 # append managed = True
                 args.append(True)
-                if instance:
+                import pdb; pdb.set_trace()
+                if this.instance:
                     # the caller wants the instance as argument
                     args.append(self._instance)
                 builder = this.BuilderClass(*args)
