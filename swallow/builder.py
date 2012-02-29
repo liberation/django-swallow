@@ -89,7 +89,7 @@ class BaseBuilder(object):
                         mapper,
                         instance,
                         modified,
-                        self.config
+                        self
                     )
                     for field in instance._meta.fields:
                         if isinstance(field, AutoField):

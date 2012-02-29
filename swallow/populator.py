@@ -23,12 +23,13 @@ class BasePopulator(object):
     """
 
 
-    def __init__(self, mapper, instance, modified, config):
+    def __init__(self, mapper, instance, modified, builder):
         self._mapper = mapper
         self._instance = instance
         self._modified = modified
         self._updating = False if instance.id is None else True
-        self._config = config
+        self._config = builder.config
+        self._builder = builder
 
     @property
     def _fields_one_to_one(self):
