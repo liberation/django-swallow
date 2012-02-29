@@ -261,7 +261,6 @@ class from_builder(object):
                 args.append(self._config)
                 # append managed = True
                 args.append(True)
-                import pdb; pdb.set_trace()
                 if this.instance:
                     # the caller wants the instance as argument
                     args.append(self._instance)
