@@ -133,6 +133,22 @@ class BaseBuilder(object):
                                 log_exception(e, msg)
                                 current_mapper_on_error = True
                                 error = True
+                    for related in instance._meta.get_all_related_objects():
+                        accessor_name = related.get_accessor_name()
+                        if populator._to_set(accessor_name):
+                            try:
+                                self.set_field(
+                                    populator,
+                                    instance,
+                                    mapper,
+                                    accessor_name
+                                )
+                            except Exception, e:
+                                msg = 'exception raised during '
+                                msg += 'm2m field population'
+                                log_exception(e, msg)
+                                current_mapper_on_error = True
+                                error = True
                     if current_mapper_on_error:
                         if not self.managed:
                             msg = 'ROLLBACK %s for %s' % (self, mapper)
@@ -222,7 +238,7 @@ class from_builder(object):
     populator method.
     """
 
-    def __init__(self, BuilderClass):
+    def __init__(self, BuilderClass, instance=False):
         self.BuilderClass = BuilderClass
 
     def __call__(self, func):
@@ -237,6 +253,9 @@ class from_builder(object):
                 args.append(self._config)
                 # append managed = True
                 args.append(True)
+                if instance:
+                    # the caller wants the instance as argument
+                    args.append(self._instance)
                 builder = this.BuilderClass(*args)
                 p, error = builder.process_and_save()
                 if error:
