@@ -200,7 +200,7 @@ class BaseBuilder(object):
         # no need to set this field
 
 
-    def __init__(self, content, config, managed=False):
+    def __init__(self, content, config, managed=False, parent_instance=None):
         # :param content: an open variable for content storing
         #                 it can a be file descriptor, a node in xml
         #                 document etc. Use it to store information
@@ -214,6 +214,12 @@ class BaseBuilder(object):
         #                 Then it should take care of starting and ending
         #                 transactions for each mapper.
         self.managed = managed
+        # :param parent_instance: the instance created by the parent builder
+        #                         you can use it in during population step
+        #                         through `populator._builder.parent_instance``
+        #                         /!\ Becarful it's not guaranteed that
+        #                         parent_instance was already saved by the
+        #                         parent builder
 
     def get_or_create_instance(self, mapper):
         # get or create without saving
