@@ -62,7 +62,7 @@ class ConfigTests(BaseSwallowTests):
 
             @classmethod
             def _iter_mappers(cls, builder):
-                mapper = super(SkipMapper, cls)._iter_mappers(builder)[0]
+                mapper = super(SkipMapper, cls)._iter_mappers(builder).next()
                 for item in mapper._item.iterfind('item'):
                     yield cls(item, builder.content)
 
