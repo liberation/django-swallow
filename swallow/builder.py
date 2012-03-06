@@ -252,7 +252,7 @@ class from_builder(object):
     def __call__(self, func):
         this = self
         @wraps(func)
-        def wrapper(self):
+        def wrapper(self): # self is a populator instance
             instances = []
             builders_args = getattr(self._mapper, func.__name__)
             for args in builders_args:
