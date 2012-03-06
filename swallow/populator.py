@@ -30,6 +30,7 @@ class BasePopulator(object):
         self._updating = False if instance.id is None else True
         self._config = builder.config
         self._builder = builder
+        self._matching_values_cache = {}
 
     @property
     def _fields_one_to_one(self):
@@ -82,3 +83,15 @@ class BasePopulator(object):
         else:
             return True
         return False
+
+    def _matching_values(self, name):
+        """Return matching values for the given Matching, the computation
+        is cached and only done once in the instance lifetime.
+        """
+        if name in self._matching_values_cache:
+            return self._matching_values_cache[name]
+        else:
+            matching = Matching.objects.get(name=name)
+            match = matching.match(self._mapper)
+            self._matching_values_cache[name] = match
+            return match
