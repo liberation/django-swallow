@@ -99,6 +99,7 @@ class Matching(models.Model):
         """Returns values or the first value if ``first_match`` is
         set that matches the mapper according the matching xml file.
         """
+        # FIXME: first_match should not be used anymore
         self.file.open()
         xml = etree.parse(self.file)
         self.file.close()
