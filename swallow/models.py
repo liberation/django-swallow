@@ -11,10 +11,11 @@ import translitcodec
 from django.conf import settings
 from django.db import models
 from django.core.urlresolvers import reverse
+from django.template.defaultfilters import slugify
 
 
 def normalize(string):
-    return string.lower().encode('translit/long')
+    return slugify(string.lower())
 
 
 class Matching(models.Model):
