@@ -6,9 +6,6 @@ import functools
 
 from lxml import etree
 
-import translitcodec
-
-from django.conf import settings
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
@@ -86,6 +83,7 @@ class Matching(models.Model):
 
         def __call__(self, func):
             this = self
+
             @functools.wraps(func)
             def wrapper(self):
                 matching = Matching.objects.get(name=this.matching_name)
@@ -205,11 +203,11 @@ class VirtualFileSystemElement(models.Model):
 
     def name(self):
         if (self.is_dir()
-            or (self.path is None)):  # if it's a virtual directory 
-            html =  '<a href="?directory=%s">' % self.pk
+            or (self.path is None)):  # if it's a virtual directory
+            html = '<a href="?directory=%s">' % self.pk
             html += '%s</a>' % self.pk
         else:
-            html =  '<span><a>'
+            html = '<span><a>'
             html += '%s</a></span>' % self.pk
         return html
     name.allow_tags = True
