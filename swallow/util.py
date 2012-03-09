@@ -46,16 +46,21 @@ def move_file(src, dst):
             log_exception(exception, msg)
 
 
+def get_config(path):
+    """
+    Return a config class from its module path.
+    """
+    import_config_module = path.split('.')
+    class_name = import_config_module[-1]
+    import_config_module = '.'.join(import_config_module[:-1])
+    config_module = import_module(import_config_module)
+    return getattr(config_module, class_name)
+
 # list configurations classes
 def get_configurations():
     CONFIGURATIONS = {}
-    for configuration_module in getattr(settings, "SWALLOW_CONFIGURATION_MODULES", []):
-        from config import BaseConfig  # avoids circular imports
-        modules = import_module(configuration_module)
-        for cls in vars(modules).values():
-
-            if (isinstance(cls, type)
-                and issubclass(cls, BaseConfig)
-                and cls is not BaseConfig):
-                CONFIGURATIONS[cls.__name__] = cls
+    for path in getattr(settings, "SWALLOW_CONFIGURATION_MODULES", []):
+        config_class = get_config(path)
+        CONFIGURATIONS[config_class.__name__] = config_class
+    print CONFIGURATIONS
     return CONFIGURATIONS

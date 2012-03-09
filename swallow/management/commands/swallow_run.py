@@ -3,6 +3,7 @@ from optparse import make_option
 from django.utils.importlib import import_module
 from django.core.management.base import BaseCommand
 
+from swallow.util import get_config
 
 class Command(BaseCommand):
     args = '<import_config_module import_config_module ...>'
@@ -26,11 +27,6 @@ class Command(BaseCommand):
             self.stdout.write(msg)
 
         for import_config_module in args:
-            # Import Config Class
-            import_config_module = import_config_module.split('.')
-            class_name = import_config_module[-1]
-            import_config_module = '.'.join(import_config_module[:-1])
-            config_module = import_module(import_config_module)
-            ConfigClass = getattr(config_module, class_name)
+            ConfigClass = get_config(import_config_module)
             config = ConfigClass(dryrun)
             config.run()
