@@ -49,7 +49,7 @@ def move_file(src, dst):
 # list configurations classes
 def get_configurations():
     CONFIGURATIONS = {}
-    for configuration_module in getattr(settings, SWALLOW_CONFIGURATION_MODULES, []):
+    for configuration_module in getattr(settings, "SWALLOW_CONFIGURATION_MODULES", []):
         from config import BaseConfig  # avoids circular imports
         modules = import_module(configuration_module)
         for cls in vars(modules).values():
