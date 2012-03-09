@@ -2,16 +2,30 @@ import logging
 from functools import wraps
 from contextlib import contextmanager
 
-from util import log_exception, logger
-
 from django.db.models.fields import AutoField
 from django.db import IntegrityError
 from django.db.transaction import commit_manually
 from django.db.transaction import rollback
 from django.db.transaction import commit
 
+from util import log_exception, logger
+
+from exception import SwallowException
+from exception import StopImport
+from exception import BuilderException
+
 
 logger = logging.getLogger()
+
+
+
+# FIXME: I'm not happy with the status/error management
+# during process_and_save including logging.
+# Errors during a STOPPED_IMPORT run could be meaningless
+# for instance.
+OK = 0
+STOPPED_IMPORT = 1
+ERROR = 2
 
 
 @contextmanager
@@ -76,12 +90,12 @@ class BaseBuilder(object):
         # only non-managed code need to be managed
         manager = dummy if self.managed else commit_manually
 
-        error = False
+        builder_status = OK
         for mapper in self.Mapper._iter_mappers(self):
             logger.info('processing of %s mapper starts' % mapper)
             if not self.skip(mapper):
                 with manager():
-                    current_mapper_on_error = False
+                    build_status = OK
                     instance = self.get_or_create_instance(mapper)
                     instances.append(instance)
                     modified = self.instance_is_locally_modified(instance)
@@ -104,12 +118,13 @@ class BaseBuilder(object):
                                         mapper,
                                         field.name
                                     )
+                                except StopImport:
+                                    build_status = STOPPED_IMPORT
                                 except Exception, e:
                                     msg = 'exception raised during '
                                     msg += 'field population'
                                     log_exception(e, msg)
-                                    current_mapper_on_error = True
-                                    error = True
+                                    build_status = ERROR
                     # save to be able to populate m2m fields
                     try:
                         instance.save()
@@ -117,7 +132,7 @@ class BaseBuilder(object):
                         msg = 'exception raised during '
                         msg += 'instance save'
                         log_exception(e, msg)
-                        current_mapper_on_error = True
+                        build_status = ERROR
                     # populate m2m fields
                     for field in instance._meta.many_to_many:
                         if populator._to_set(field.name):
@@ -127,12 +142,13 @@ class BaseBuilder(object):
                                     instance,
                                     field.name
                                 )
+                            except StopImport:
+                                build_status = STOPPED_IMPORT
                             except Exception, e:
                                 msg = 'exception raised during '
                                 msg += 'm2m field population'
                                 log_exception(e, msg)
-                                current_mapper_on_error = True
-                                error = True
+                                build_status = ERROR
                     for related in instance._meta.get_all_related_objects():
                         accessor_name = related.get_accessor_name()
                         if populator._to_set(accessor_name):
@@ -143,20 +159,30 @@ class BaseBuilder(object):
                                     mapper,
                                     accessor_name
                                 )
+                            except StopImport:
+                                build_status = STOPPED_IMPORT
                             except Exception, e:
                                 msg = 'exception raised during '
                                 msg += 'm2m field population'
                                 log_exception(e, msg)
-                                current_mapper_on_error = True
-                                error = True
-                    if current_mapper_on_error:
+                                build_status = ERROR
+                    if build_status in (ERROR, STOPPED_IMPORT):
+                        builder_status = build_status
                         if not self.managed:
+                            # if it's not managed ie. it's the first builder in
+                            # import chain rollback the transaction
                             msg = 'ROLLBACK %s for %s' % (self, mapper)
                             logger.critical(msg)
                             rollback()
-                        msg = '%s builder raised an exception ' % self
-                        msg += 'in process_and_save'
-                        logger.error(msg)
+                        # different logging depending on the status
+                        if build_status == ERROR:
+                            msg = '%s builder raised an exception ' % self
+                            msg += 'in process_and_save'
+                            logger.error(msg)
+                        else: # build_status == STOPPED_IMPORT
+                            msg = '%s builder was stopped during %s processing'
+                            msg = msg % (self, mapper)
+                            logger.warning(msg)
                     else:
                         if not self.managed:
                             logger.info('COMMIT %s' % self)
@@ -169,8 +195,8 @@ class BaseBuilder(object):
                         logger.info(msg)
             else:
                 logger.info('skip %s mapper' % mapper)
-            # that's all folks :)
-        return instances, error
+        return instances, builder_status
+        # that's all folks :)
 
     def set_field(self, populator, instance, mapper, field_name):
         if field_name in populator._fields_one_to_one:
@@ -198,7 +224,6 @@ class BaseBuilder(object):
             method()
         # else ``method`` is not set
         # no need to set this field
-
 
     def __init__(self, content, config, managed=False, parent_instance=None):
         # :param content: an open variable for content storing

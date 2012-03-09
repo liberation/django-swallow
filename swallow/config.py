@@ -4,6 +4,7 @@ import logging
 
 from django.conf import settings
 
+from builder import OK
 
 
 class BaseConfig(object):
@@ -161,10 +162,10 @@ class BaseConfig(object):
                         error = False
                         try:
                             if hasattr(self, 'postprocess'):
-                                new_instances, error = builder.process_and_save()
+                                new_instances, status = builder.process_and_save()
                                 instances.append(new_instances)
                             else:
-                                _, error = builder.process_and_save()
+                                _, status = builder.process_and_save()
                         except Exception, exception:
                             msg = 'builder processing of'
                             msg += ' %s failed' % input_file_path
@@ -181,7 +182,7 @@ class BaseConfig(object):
                                 )
                             self.files = []
                         else:
-                            if error:
+                            if status != OK:
                                 target = self.error_dir()
                             else:
                                 target = self.done_dir()
