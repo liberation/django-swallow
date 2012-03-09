@@ -62,5 +62,4 @@ def get_configurations():
     for path in getattr(settings, "SWALLOW_CONFIGURATION_MODULES", []):
         config_class = get_config(path)
         CONFIGURATIONS[config_class.__name__] = config_class
-    print CONFIGURATIONS
     return CONFIGURATIONS
