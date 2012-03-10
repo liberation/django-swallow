@@ -159,12 +159,12 @@ class Matching(models.Model):
             if matched_set:
                 output.append(column)
         if not output:
-            default = dict(xml.getroot().items()).get('default', None)
+            default = xml.getroot().find('default')
             if default is not None:
                 if first_match:
-                    return default
+                    return default.text
                 else:
-                    output.append(default)
+                    output.append(default.text)
         return output
 
 
