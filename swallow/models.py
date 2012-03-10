@@ -59,7 +59,7 @@ class Matching(models.Model):
     """
 
     # :param name: name of the matching
-    name = models.CharField(max_length=250)
+    name = models.CharField(max_length=250, unique=True, db_index=True)
 
     # :param file: file which holds the values which computes the matching
     file = models.FileField(upload_to='swallow_matchings')
