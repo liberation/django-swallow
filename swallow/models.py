@@ -124,6 +124,9 @@ class Matching(models.Model):
                 # one rule matched
                 match = dict()
                 for rule in set.iterchildren():
+                    # Do not consider XML comments <!-- like this -->
+                    if isinstance(rule, etree._Comment):
+                        continue
                     name = rule.tag
                     loose = rule.get('loose-compare')
                     if loose == 'yes':
