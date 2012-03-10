@@ -129,10 +129,7 @@ class Matching(models.Model):
                         continue
                     name = rule.tag
                     loose = rule.get('loose-compare')
-                    if loose == 'yes':
-                        loose = True
-                    else:
-                        loose = False
+                    loose = loose == 'yes'  # Cast to boolean
                     v1 = rule.text
                     v2 = getattr(mapper, name)
                     if loose:
