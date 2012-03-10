@@ -88,10 +88,9 @@ class BasePopulator(object):
         """Return matching values for the given Matching, the computation
         is cached and only done once in the instance lifetime.
         """
-        if name in self._matching_values_cache:
-            return self._matching_values_cache[name]
-        else:
+        if not name in self._matching_values_cache:
             matching = Matching.objects.get(name=name)
             match = matching.match(self._mapper)
             self._matching_values_cache[name] = match
-            return match
+        return self._matching_values_cache[name]
+
