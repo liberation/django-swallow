@@ -5,6 +5,8 @@ from optparse import make_option
 from django.utils.importlib import import_module
 from django.core.management.base import BaseCommand
 
+from swallow.util import get_config
+
 
 class Command(BaseCommand):
     args = 'import_config_module swallow_dir_name max_age'
@@ -21,6 +23,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dryrun = options['dryrun']
+        verbosity = options['verbosity']
 
         if dryrun:
             msg = 'This is a dry run. '
@@ -34,11 +37,7 @@ class Command(BaseCommand):
         max_age = int(args[2])
 
         # import config class
-        import_config_module = import_config_module.split('.')
-        class_name = import_config_module[-1]
-        import_config_module = '.'.join(import_config_module[:-1])
-        config_module = import_module(import_config_module)
-        ConfigClass = getattr(config_module, class_name)
+        ConfigClass = get_config(import_config_module)
 
         # fetch swallow_dir 
         swallow_dir = getattr(ConfigClass, swallow_dir)()
@@ -50,6 +49,7 @@ class Command(BaseCommand):
                 st_mtime = os.stat(file_path).st_mtime
                 age = time() - st_mtime
                 if age > max_age:
-                    self.stdout.write('%s is to be deleted' % file_path)
+                    if verbosity > 0:  # Use --verbosity=0 to make it quiet
+                        self.stdout.write("%s is to be deleted\n" % file_path)
                     if not dryrun:
                         os.remove(file_path)
