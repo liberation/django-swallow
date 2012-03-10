@@ -97,7 +97,6 @@ class BaseBuilder(object):
                 with manager():
                     build_status = OK
                     instance = self.get_or_create_instance(mapper)
-                    instances.append(instance)
                     modified = self.instance_is_locally_modified(instance)
                     populator = self.Populator(
                         mapper,
@@ -128,6 +127,9 @@ class BaseBuilder(object):
                     # save to be able to populate m2m fields
                     try:
                         instance.save()
+                        # Add saved instance in instances that will be returned
+                        # to config, for postprocessing if there is one
+                        instances.append(instance)
                     except IntegrityError, e:
                         msg = 'exception raised during '
                         msg += 'instance save'
