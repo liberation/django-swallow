@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
+TEST_RUNNER = 'django_coverage.coverage_runner.CoverageRunner'
 
 
 LOGGING = {
