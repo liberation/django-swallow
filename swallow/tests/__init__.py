@@ -30,6 +30,16 @@ class Article(models.Model):
         return self.title
 
 
+class ModelForBuilderTests(models.Model):
+    simple_field = models.IntegerField()
+    second_field = models.IntegerField(null=True)
+    m2m = models.ManyToManyField('RelatedM2M')
+
+
+class RelatedM2M(models.Model):
+    foreign_m2m = models.ManyToManyField(ModelForBuilderTests)
+
+
 from models import *
 from integration import *
 from config import *

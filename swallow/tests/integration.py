@@ -208,7 +208,6 @@ def setup_matchings_and_sections():
     Section(name='SPORT INDIVIDUEL').save()
 
 
-
 class IntegrationTests(TransactionTestCase):
 
     def setUp(self):
