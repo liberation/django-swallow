@@ -13,7 +13,7 @@ from swallow.tests import ModelForBuilderTests
 
 
 class BuilderNotImplementedErrorsTests(TestCase):
-    """BasePopulator has certains attributes that should be overriden check
+    """BaseBuilder has certains attributes that should be overriden check
     that these methods and properties raise a NotImplementedError exception"""
 
     def test_mapper(self):
