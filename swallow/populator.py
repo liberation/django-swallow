@@ -82,6 +82,7 @@ class BasePopulator(object):
                     return True
         else:
             return True
+        return False
 
     def _matching_values(self, name):
         """Return matching values for the given Matching, the computation
