@@ -18,7 +18,6 @@ from exception import BuilderException
 logger = logging.getLogger()
 
 
-
 # FIXME: I'm not happy with the status/error management
 # during process_and_save including logging.
 # Errors during a STOPPED_IMPORT run could be meaningless
@@ -127,9 +126,6 @@ class BaseBuilder(object):
                     # save to be able to populate m2m fields
                     try:
                         instance.save()
-                        # Add saved instance in instances that will be returned
-                        # to config, for postprocessing if there is one
-                        instances.append(instance)
                     except IntegrityError, e:
                         msg = 'exception raised during '
                         msg += 'instance save'
@@ -195,6 +191,9 @@ class BaseBuilder(object):
                             instance
                         )
                         logger.info(msg)
+                        # Add saved instance in instances that will be returned
+                        # to config, for postprocessing if there is one
+                        instances.append(instance)
             else:
                 logger.info('skip %s mapper' % mapper)
         return instances, builder_status

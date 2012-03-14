@@ -178,8 +178,6 @@ class BuilderSetM2MFieldTests(TestCase):
     def test_do_not_populate(self):
         """If there is no populator method with the proper
         name, nothing happens"""
-
-
         builder = BaseBuilder(None, None)
         instance = ModelForBuilderTests(simple_field=1)
         instance.save()
@@ -191,7 +189,6 @@ class BuilderSetM2MFieldTests(TestCase):
     def test_clear_m2m(self):
         """Tests that set_m2m_field clear the m2m before calling
         populator method"""
-
         builder = BaseBuilder(None, None)
         instance = ModelForBuilderTests(simple_field=1)
         instance.save()
@@ -310,7 +307,6 @@ class BuilderProcessAndSaveTests(TestCase):
         self.assertEqual(1, instances[0].simple_field)
 
     def test_stop_import_on_simple_field(self):
-        # FIXME
 
         class ArticleBuilder(BaseBuilder):
 
@@ -365,7 +361,7 @@ class BuilderProcessAndSaveTests(TestCase):
 
         self.assertEqual(status, STOPPED_IMPORT)
         self.assertEqual(1, len(instances))
-        self.assertEqual(2, ModelForBuilderTests.objects.count())
+        self.assertEqual(1, ModelForBuilderTests.objects.count())
         self.assertEqual(1, RelatedM2M.objects.count())
 
     def test_stop_import_on_m2m_field(self):
