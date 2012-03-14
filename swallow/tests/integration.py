@@ -336,7 +336,7 @@ class IntegrationTests(TransactionTestCase):
         """Tests full configuration with command"""
         with override_settings(SWALLOW_DIRECTORY=self.SWALLOW_DIRECTORY):
             call_command(
-                'swallow',
+                'swallow_run',
                 'swallow.tests.integration.ArticleConfig'
             )
 
