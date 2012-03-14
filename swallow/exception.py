@@ -3,6 +3,7 @@ class SwallowException(Exception):
 
 
 class StopImport(SwallowException):
+    """Stop current builder import"""
     pass
 
 
