@@ -1,7 +1,6 @@
 import os, shutil, copy, re
 
 from django.test import TransactionTestCase
-from swallow import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.db.models import Count

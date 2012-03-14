@@ -3,8 +3,6 @@ import shutil
 
 from django.test import TransactionTestCase
 
-from swallow import settings
-
 
 CURRENT_PATH = os.path.dirname(__file__)
 
