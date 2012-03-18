@@ -102,7 +102,7 @@ class BaseConfig(object):
             type(self).__name__,
             self.input_dir(),
         ))
-        self.process_recursively('.')
+        self.process_recursively()
 
     def paths(self, path):
         """Builds paths for relative path ``path``"""
@@ -112,7 +112,7 @@ class BaseConfig(object):
         done = os.path.realpath(os.path.join(self.done_dir(), path))
         return input, work, error, done
 
-    def process_recursively(self, path):
+    def process_recursively(self, path=""):
         """Recusively inspect :attribute:`BaseConfig.input_dir`
         and process files using BFS
 
