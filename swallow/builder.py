@@ -15,7 +15,7 @@ from exception import StopImport
 from exception import BuilderException
 
 
-logger = logging.getLogger()
+logger = logging.getLogger('swallow.builder')
 
 
 # FIXME: I'm not happy with the status/error management

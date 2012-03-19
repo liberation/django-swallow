@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.importlib import import_module
 
 
-logger = logging.getLogger()
+logger = logging.getLogger('swallow.util')
 
 
 def log_exception(
