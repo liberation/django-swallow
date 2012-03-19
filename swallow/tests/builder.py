@@ -365,7 +365,63 @@ class BuilderProcessAndSaveTests(TestCase):
         self.assertEqual(1, RelatedM2M.objects.count())
 
     def test_stop_import_on_m2m_field(self):
-        pass
+
+        class ArticleBuilder(BaseBuilder):
+
+            Model = ModelForBuilderTests
+
+            class Mapper(BaseMapper):
+
+                @classmethod
+                def _iter_mappers(cls, builder):
+                    for i in [1,2,3,4,5,6,7]:
+                        yield cls(i)
+
+                @property
+                def _instance_filters(self):
+                    return {'simple_field': self.simple_field}
+
+                @property
+                def simple_field(self):
+                    return self._content
+
+                @property
+                def second_field(self):
+                    return 2
+
+            class Populator(BasePopulator):
+
+                _fields_one_to_one = ('simple_field', 'second_field')
+                _fields_if_instance_already_exists = []
+                _fields_if_instance_modified_from_last_import = []
+
+                def m2m(self):
+                    if self._mapper.simple_field != 1:
+                        raise StopImport()
+                    for i in range(self._mapper.simple_field):
+                        related = RelatedM2M()
+                        related.save()
+                        self._instance.m2m.add(related)
+
+                def relatedm2m_set(self):
+                    for i in range(self._mapper.simple_field):
+                        m = ModelForBuilderTests(simple_field=i)
+                        self._instance.relatedm2m_set.add(m)
+
+            def skip(self, mapper):
+                return False
+
+            def instance_is_locally_modified(self, instance):
+                return False
+
+        builder = ArticleBuilder(None, None)
+        instances, status = builder.process_and_save()
+
+        self.assertEqual(status, STOPPED_IMPORT)
+        self.assertEqual(1, len(instances))
+        self.assertEqual(1, ModelForBuilderTests.objects.count())
+        self.assertEqual(1, RelatedM2M.objects.count())
+
 
     def test_stop_import_on_related_m2m_field(self):
         pass
