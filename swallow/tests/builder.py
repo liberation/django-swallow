@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.test import TransactionTestCase
 
 from swallow.exception import StopImport
 
@@ -198,7 +199,7 @@ class BuilderSetM2MFieldTests(TestCase):
         self.assertEqual(0, instance.m2m.count())
 
 
-class BuilderProcessAndSaveTests(TestCase):
+class BuilderProcessAndSaveTests(TransactionTestCase):
 
     def test_full_builder(self):
         """Check that a fully working builder works"""
