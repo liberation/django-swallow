@@ -359,7 +359,7 @@ class BuilderProcessAndSaveTests(TestCase):
         builder = ArticleBuilder(None, None)
         instances, status = builder.process_and_save()
 
-        self.assertEqual(status, STOPPED_IMPORT)
+        self.assertEqual(STOPPED_IMPORT, status)
         self.assertEqual(1, len(instances))
         self.assertEqual(1, ModelForBuilderTests.objects.count())
         self.assertEqual(1, RelatedM2M.objects.count())
@@ -417,7 +417,7 @@ class BuilderProcessAndSaveTests(TestCase):
         builder = ArticleBuilder(None, None)
         instances, status = builder.process_and_save()
 
-        self.assertEqual(status, STOPPED_IMPORT)
+        self.assertEqual(STOPPED_IMPORT, status)
         self.assertEqual(1, len(instances))
         self.assertEqual(1, ModelForBuilderTests.objects.count())
         self.assertEqual(1, RelatedM2M.objects.count())
