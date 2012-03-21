@@ -14,7 +14,14 @@ class BaseMapper(object):
         a new model instance"""
         raise NotImplementedError()
 
+    @classmethod
+    def _iter_mappers(cls, builder):
+        """The content associated with one builder can correspond to
+        several mappers """
+        raise NotImplementedError()
 
+
+# FIXME: Remove this class from swallow
 class XmlMapper(BaseMapper):
     """Xml file mapper to access it's properties passed to
     :meth:`BaseConfig.populate`"""
