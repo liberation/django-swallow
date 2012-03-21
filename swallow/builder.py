@@ -286,6 +286,9 @@ class from_builder(object):
             # create a builder and run it
             builders_args = getattr(self._mapper, func.__name__)
             for args in builders_args:
+                # Every arg here its the content parameter for the init of the
+                # builder
+                args = [args]
                 # build builder constructor arguments
                 # the inner builder inherit the config
                 args.append(self._config)
