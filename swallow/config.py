@@ -161,11 +161,9 @@ class BaseConfig(object):
                     if not self.dryrun:
                         error = False
                         try:
+                            new_instances, status = builder.process_and_save()
                             if hasattr(self, 'postprocess'):
-                                new_instances, status = builder.process_and_save()
                                 instances.append(new_instances)
-                            else:
-                                _, status = builder.process_and_save()
                         except Exception, exception:
                             msg = 'builder processing of'
                             msg += ' %s failed' % input_file_path
