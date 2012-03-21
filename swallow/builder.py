@@ -287,7 +287,6 @@ class from_builder(object):
             builders_args = getattr(self._mapper, func.__name__)
             for args in builders_args:
                 # build builder constructor arguments
-                args = list(args)
                 # the inner builder inherit the config
                 args.append(self._config)
                 # inner builder transaction is managed by the
