@@ -276,25 +276,36 @@ class from_builder(object):
         self.instance=instance
 
     def __call__(self, func):
-        this = self
+        this = self  # this is the decorator class
         @wraps(func)
-        def wrapper(self): # self is a populator instance
+        def wrapper(self):  # self is a populator instance
+            # just like it's done in BaseConfig gather created
+            # instances
             instances = []
+            # for each object returned by the mapper property
+            # create a builder and run it
             builders_args = getattr(self._mapper, func.__name__)
             for args in builders_args:
+                # build builder constructor arguments
                 args = list(args)
-                # append current config
+                # the inner builder inherit the config
                 args.append(self._config)
-                # append managed = True
+                # inner builder transaction is managed by the
+                # the outter builder so managed=True
                 args.append(True)
                 if this.instance:
-                    # the caller wants the instance as argument
+                    # the caller wants the object that is currently
+                    # created as argument
                     args.append(self._instance)
                 builder = this.BuilderClass(*args)
                 p, error = builder.process_and_save()
-                if error:
+                if error:  # error can be STOPPED_IMPORT or ERROR
+                           # both variable are superior to zero
                     msg = '%s raised an exception' % builder
-                    raise Exception(msg)
-                instances.extend(p)
+                    raise Exception(msg)  # FIXME: replace
+                                          # by a Swallow exception
+                instances.extend(p)  # FIXME: This is not consistent with
+                                     # BaseConfig way of gathering created
+                                     # instances
             return func(self, instances)
         return wrapper
