@@ -1,6 +1,8 @@
 import os
 import logging
 
+from time import time
+
 from django.conf import settings
 
 from swallow.exception import StopConfig
@@ -159,11 +161,26 @@ class BaseConfig(object):
 
             if os.path.isdir(input_file_path):
                 self.process_recursively(partial_file_path)
-            elif not os.path.exists(input_file_path):
-                # the file might have been already moved
-                # by a nested builder
-                continue
             else:
+                if not os.path.exists(input_file_path):
+                    # the file might have been already moved
+                    # by a nested builder
+                    continue
+
+                # --- Check file age
+                # Idea is to prevent from processing a file too much recent, to
+                # avoid processing file while they are downloaded in input dir
+                # and to minimize risk of missing dependency files
+                # If you don't care about this, just do not set it in settings
+                min_age = getattr(settings, "SWALLOW_QUARANTINE", 0)  # seconds
+                if min_age > 0:
+                    st_mtime = os.stat(input_file_path).st_mtime
+                    age = time() - st_mtime
+                    if age < min_age:
+                        logger.info("Skipping too recent file %s" % input_file_path)
+                        continue
+
+                # --- Load and process builder for file
                 builder = self.load_builder(partial_file_path)
                 if builder is None:
                     logger.info('skip file %s' % input_file_path)
