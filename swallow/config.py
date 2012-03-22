@@ -139,7 +139,7 @@ class BaseConfig(object):
             instances = []
 
         # avoids circular imports
-        from util import log_exception, logger  # FIXME
+        from util import log_exception, logger, move_file  # FIXME
 
         logger.info('process_recursively %s' % path)
 
@@ -156,7 +156,9 @@ class BaseConfig(object):
         logger.info('work_path %s' % work)
 
         for f in os.listdir(input):
+            # Relative file path from current path
             partial_file_path = os.path.join(path, f)
+            # Absolute file path
             input_file_path = os.path.join(input, f)
 
             if os.path.isdir(input_file_path):
@@ -213,8 +215,31 @@ class BaseConfig(object):
                         # We are in dry-run, put back the files in input dir
                         self.mv_files_from_work_dir(to_dir=self.input_dir())
 
-        # --- Clean old files from current directory
-        # TODO
+        # --- Clean old files from current input directory
+        if not self.dryrun:
+            # Here is the simplest implementation to manage secondary files
+            # i.e. files that has not been endpoint files
+            # These files could have been used has dependency file, by one or
+            # more import
+            # We need to manage to cases:
+            # - the case of a file that is a dependency of two endpoints files
+            # - the case of a file that is a dependency of a endpoint file that
+            #   has gone in error
+            # Both these cases should better be handled with transaction, but
+            # we consider that the transaction implementation in Django is not
+            # enouth advanced for these complex cases (m2m, post_save, etc.)
+            # (See for example ticket #14051 in Django Trac)
+            # When the Implementor has used Config.open to manage these files,
+            # they already have been moved away
+            for f in os.listdir(input):
+                input_file_path = os.path.join(input, f)
+                done_file_path = os.path.join(done, f)
+                grace_period = getattr(settings, "SWALLOW_GRACE_PERIOD", 60 * 60 * 24)
+                st_mtime = os.stat(input_file_path).st_mtime
+                age = time() - st_mtime
+                if age > grace_period:
+                    logger.info("Removing old file from input dir: %s" % input_file_path)
+                    move_file(input_file_path, done_file_path)
 
         if hasattr(self, 'postprocess'):
             self.postprocess(instances)
