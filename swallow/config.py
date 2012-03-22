@@ -1,10 +1,9 @@
 import os
-import shutil
 import logging
 
 from django.conf import settings
 
-from builder import OK
+from swallow.exception import StopConfig
 
 
 class BaseConfig(object):
@@ -112,6 +111,19 @@ class BaseConfig(object):
         done = os.path.realpath(os.path.join(self.done_dir(), path))
         return input, work, error, done
 
+    def mv_files_from_work_dir(self, to_dir):
+        """Move current endpoints files from work dir to to_dir."""
+        from util import move_file  # FIXME
+        # Move the endpoint files
+        for p in self.files:
+            work = os.path.join(self.work_dir(), p)
+            target = os.path.join(to_dir, p)
+            move_file(
+                work,
+                target
+            )
+        self.files = []
+
     def process_recursively(self, path=""):
         """Recusively inspect :attribute:`BaseConfig.input_dir`
         and process files using BFS
@@ -125,7 +137,7 @@ class BaseConfig(object):
             instances = []
 
         # avoids circular imports
-        from util import move_file, log_exception, logger
+        from util import log_exception, logger  # FIXME
 
         logger.info('process_recursively %s' % path)
 
@@ -159,11 +171,15 @@ class BaseConfig(object):
                 else:
                     logger.info('match %s' % partial_file_path)
                     if not self.dryrun:
-                        error = False
                         try:
-                            new_instances, status = builder.process_and_save()
-                            if hasattr(self, 'postprocess'):
-                                instances.append(new_instances)
+                            new_instances = builder.process_and_save()
+                        except StopConfig, e:
+                            # this is a user controlled exception
+                            msg = u'Import stopped for %s' % self
+                            msg += u"Reason is: \n%s" % e.message
+                            logger.warning(msg)
+                            self.mv_files_from_work_dir(to_dir=self.error_dir())
+                            break
                         except Exception, exception:
                             msg = 'builder processing of'
                             msg += ' %s failed' % input_file_path
@@ -171,23 +187,17 @@ class BaseConfig(object):
                                 exception,
                                 msg
                             )
-                            move_files_to = self.error_dir()
+                            self.mv_files_from_work_dir(to_dir=self.error_dir())
                         else:
-                            move_files_to = self.done_dir() if status == OK \
-                                                            else self.error_dir()
+                            if hasattr(self, 'postprocess'):
+                                instances.append(new_instances)
+                            self.mv_files_from_work_dir(to_dir=self.done_dir())
                     else:
                         # We are in dry-run, put back the files in input dir
-                        move_files_to = self.input_dir()
-                    
-                    # Move the files
-                    for p in self.files:
-                        work = os.path.join(self.work_dir(), p)
-                        target = os.path.join(move_files_to, p)
-                        move_file(
-                            work,
-                            target
-                        )
-                    self.files = []
+                        self.mv_files_from_work_dir(to_dir=self.input_dir())
+
+        # --- Clean old files from current directory
+        # TODO
 
         if hasattr(self, 'postprocess'):
             self.postprocess(instances)

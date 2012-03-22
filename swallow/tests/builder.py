@@ -1,10 +1,9 @@
 from django.test import TestCase
 from django.test import TransactionTestCase
 
-from swallow.exception import StopImport
+from swallow.exception import StopMapper, StopBuilder, StopConfig
 
 from swallow.builder import BaseBuilder
-from swallow.builder import OK, STOPPED_IMPORT, ERROR
 
 from swallow.populator import BasePopulator
 from swallow.mappers import BaseMapper
@@ -247,9 +246,8 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances, status = builder.process_and_save()
+        instances = builder.process_and_save()
 
-        self.assertEqual(status, OK)
         self.assertEqual(7, len(instances))
 
     def test_skip_builder(self):
@@ -301,9 +299,8 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances, status = builder.process_and_save()
+        instances = builder.process_and_save()
 
-        self.assertEqual(status, OK)
         self.assertEqual(1, len(instances))
         self.assertEqual(1, instances[0].simple_field)
 
@@ -358,14 +355,13 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances, status = builder.process_and_save()
+        instances = builder.process_and_save()
 
-        self.assertEqual(STOPPED_IMPORT, status)
         self.assertEqual(1, len(instances))
         self.assertEqual(1, ModelForBuilderTests.objects.count())
         self.assertEqual(1, RelatedM2M.objects.count())
 
-    def test_stop_import_on_m2m_field(self):
+    def test_stop_import_on_m2m_field(self):  # FIXME
 
         class ArticleBuilder(BaseBuilder):
 
@@ -398,7 +394,7 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
 
                 def m2m(self):
                     if self._mapper.simple_field != 1:
-                        raise StopImport()
+                        raise StopBuilder()
                     for i in range(self._mapper.simple_field):
                         related = RelatedM2M()
                         related.save()
@@ -416,9 +412,8 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances, status = builder.process_and_save()
+        instances = builder.process_and_save()
 
-        self.assertEqual(STOPPED_IMPORT, status)
         self.assertEqual(1, len(instances))
         self.assertEqual(1, ModelForBuilderTests.objects.count())
         self.assertEqual(1, RelatedM2M.objects.count())

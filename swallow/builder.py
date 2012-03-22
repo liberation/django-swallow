@@ -3,28 +3,11 @@ from functools import wraps
 from contextlib import contextmanager
 
 from django.db.models.fields import AutoField
-from django.db import IntegrityError
-from django.db.transaction import commit_manually
-from django.db.transaction import rollback
-from django.db.transaction import commit
 
-from util import log_exception, logger
-
-from exception import SwallowException
-from exception import StopImport
-from exception import BuilderException
+from swallow.exception import StopConfig, StopBuilder, StopMapper
 
 
 logger = logging.getLogger('swallow.builder')
-
-
-# FIXME: I'm not happy with the status/error management
-# during process_and_save including logging.
-# Errors during a STOPPED_IMPORT run could be meaningless
-# for instance.
-OK = 0
-STOPPED_IMPORT = 1
-ERROR = 2
 
 
 @contextmanager
@@ -86,118 +69,111 @@ class BaseBuilder(object):
         """
         instances = []
 
-        # only non-managed code need to be managed
-        manager = dummy if self.managed else commit_manually
-
-        builder_status = OK
         for mapper in self.Mapper._iter_mappers(self):
-            logger.info('processing of %s mapper starts' % mapper)
-            if not self.skip(mapper):
-                with manager():
-                    build_status = OK
-                    instance = self.get_or_create_instance(mapper)
-                    modified = self.instance_is_locally_modified(instance)
-                    populator = self.Populator(
-                        mapper,
-                        instance,
-                        modified,
-                        self
-                    )
-                    for field in instance._meta.fields:
-                        if isinstance(field, AutoField):
-                            # can't set auto field
-                            pass
-                        else:
-                            if populator._to_set(field.name):
-                                try:
-                                    self.set_field(
-                                        populator,
-                                        instance,
-                                        mapper,
-                                        field.name
-                                    )
-                                except StopImport:
-                                    build_status = STOPPED_IMPORT
-                                except Exception, e:
-                                    msg = 'exception raised during '
-                                    msg += 'field population'
-                                    log_exception(e, msg)
-                                    build_status = ERROR
-                    # save to be able to populate m2m fields
-                    try:
-                        instance.save()
-                    except IntegrityError, e:
-                        msg = 'exception raised during '
-                        msg += 'instance save'
-                        log_exception(e, msg)
-                        build_status = ERROR
-                    # populate m2m fields
-                    for field in instance._meta.many_to_many:
-                        if populator._to_set(field.name):
-                            try:
-                                self.set_m2m_field(
-                                    populator,
-                                    instance,
-                                    field.name
-                                )
-                            except StopImport:
-                                build_status = STOPPED_IMPORT
-                            except Exception, e:
-                                msg = 'exception raised during '
-                                msg += 'm2m field population'
-                                log_exception(e, msg)
-                                build_status = ERROR
-                    for related in instance._meta.get_all_related_objects():
-                        accessor_name = related.get_accessor_name()
-                        if populator._to_set(accessor_name):
-                            try:
-                                self.set_field(
-                                    populator,
-                                    instance,
-                                    mapper,
-                                    accessor_name
-                                )
-                            except StopImport:
-                                build_status = STOPPED_IMPORT
-                            except Exception, e:
-                                msg = 'exception raised during '
-                                msg += 'm2m field population'
-                                log_exception(e, msg)
-                                build_status = ERROR
-                    if build_status in (ERROR, STOPPED_IMPORT):
-                        builder_status = build_status
-                        if not self.managed:
-                            # if it's not managed ie. it's the first builder in
-                            # import chain rollback the transaction
-                            msg = 'ROLLBACK %s for %s' % (self, mapper)
-                            logger.critical(msg)
-                            rollback()
-                        # different logging depending on the status
-                        if build_status == ERROR:
-                            msg = '%s builder raised an exception ' % self
-                            msg += 'in process_and_save'
-                            logger.error(msg)
-                        else: # build_status == STOPPED_IMPORT
-                            msg = '%s builder was stopped during %s processing'
-                            msg = msg % (self, mapper)
-                            logger.warning(msg)
-                    else:
-                        if not self.managed:
-                            logger.info('COMMIT %s' % self)
-                            commit()
-                        msg = 'saved %s@%s: %s' % (
-                            type(instance),
-                            instance.id,
-                            instance
-                        )
-                        logger.info(msg)
-                        # Add saved instance in instances that will be returned
-                        # to config, for postprocessing if there is one
-                        instances.append(instance)
+            try:
+                instance = self.process_mapper(mapper)
+            except StopBuilder, e:
+                # Implementor has asked to totally stop the import
+                msg = u"Import of builder %s has been stopped" % self
+                msg += u"Reason is: \n %s" % e.message
+                logger.warning(msg)
+                # FIXME: empty instances?
+                break
+            except StopConfig:
+                raise  # Propagate stop order to Config
+            except StopMapper, e:
+                msg = u"Import of mapper %s has been stopped" % mapper
+                msg += u"Reason is: \n %s" % e.message
+                logger.warning(msg)
+                continue  # To next mapper
+            except Exception, e:
+                msg = u"Unhandled exception on %s" % mapper
+                msg += u"Error message is: \n %s" % e.message
+                logger.error(msg)
+                continue  # To next mapper
             else:
-                logger.info('skip %s mapper' % mapper)
-        return instances, builder_status
-        # that's all folks :)
+                if instance:
+                    # Instance is None if mapper has be skipped in skip method
+                    instances.append(instance)
+        return instances
+
+    def process_mapper(self, mapper):
+        logger.info('processing of %s mapper starts' % mapper)
+        if not self.skip(mapper):
+            instance = self.get_or_create_instance(mapper)
+            modified = self.instance_is_locally_modified(instance)
+            populator = self.Populator(
+                mapper,
+                instance,
+                modified,
+                self
+            )
+
+            # --- Populate simple fields
+            for field in instance._meta.fields:
+                if isinstance(field, AutoField):
+                    # can't set auto field
+                    pass
+                else:
+                    if populator._to_set(field.name):
+                        # Do not catch exceptions here
+                        self.set_field(
+                            populator,
+                            instance,
+                            mapper,
+                            field.name
+                        )
+
+            # --- Save to be able to populate relations fields
+            instance.save()
+
+            # --- Populate m2m fields
+            for field in instance._meta.many_to_many:
+                if populator._to_set(field.name):
+                    try:
+                        self.set_m2m_field(
+                            populator,
+                            instance,
+                            field.name
+                        )
+                    except (StopMapper, StopBuilder, StopConfig):
+                        # Implementor has asked the import to be stopped, so
+                        # propagate it
+                        raise
+                    except Exception, e:
+                        # Unhandled error
+                        # Do not stop import, just continue to next field
+                        msg = u"Unhandled exception on m2m %s" % field.name
+                        msg += u"Error message is: \n %s" % e.message
+                        logger.error(msg)
+                        continue  # To next field
+
+            # --- Populate related fields
+            for related in instance._meta.get_all_related_objects():
+                accessor_name = related.get_accessor_name()
+                if populator._to_set(accessor_name):
+                    try:
+                        self.set_field(
+                            populator,
+                            instance,
+                            mapper,
+                            accessor_name
+                        )
+                    except (StopMapper, StopBuilder, StopConfig):
+                        # Implementor has asked the import to be stopped, so
+                        # propagate it
+                        raise
+                    except Exception, e:
+                        # Unhandled error
+                        # Do not stop import, just continue to next field
+                        msg = u"Unhandled exception on related %s" % accessor_name
+                        msg += u"Error message is: \n %s" % e.message
+                        logger.error(msg)
+                        continue  # To next field
+        else:
+            logger.info('skip %s mapper' % mapper)
+            instance = None
+        return instance
 
     def set_field(self, populator, instance, mapper, field_name):
         if field_name in populator._fields_one_to_one:
@@ -273,10 +249,11 @@ class from_builder(object):
 
     def __init__(self, BuilderClass, instance=False):
         self.BuilderClass = BuilderClass
-        self.instance=instance
+        self.instance = instance
 
     def __call__(self, func):
         this = self  # this is the decorator class
+
         @wraps(func)
         def wrapper(self):  # self is a populator instance
             # just like it's done in BaseConfig gather created
@@ -300,12 +277,7 @@ class from_builder(object):
                     # created as argument
                     args.append(self._instance)
                 builder = this.BuilderClass(*args)
-                p, error = builder.process_and_save()
-                if error:  # error can be STOPPED_IMPORT or ERROR
-                           # both variable are superior to zero
-                    msg = '%s raised an exception' % builder
-                    raise Exception(msg)  # FIXME: replace
-                                          # by a Swallow exception
+                p = builder.process_and_save()
                 instances.extend(p)  # FIXME: This is not consistent with
                                      # BaseConfig way of gathering created
                                      # instances
