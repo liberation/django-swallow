@@ -171,36 +171,23 @@ class BaseConfig(object):
                                 exception,
                                 msg
                             )
-                            for p in self.files:
-                                work = os.path.join(self.work_dir(), p)
-                                error = os.path.join(self.error_dir(), p)
-                                move_file(
-                                    work,
-                                    error
-                                )
-                            self.files = []
+                            move_files_to = self.error_dir()
                         else:
-                            if status != OK:
-                                target = self.error_dir()
-                            else:
-                                target = self.done_dir()
-                            for p in self.files:
-                                work = os.path.join(self.work_dir(), p)
-                                t = os.path.join(target, p)
-                                move_file(
-                                    work,
-                                    t
-                                )
-                            self.files = []
+                            move_files_to = self.done_dir() if status == OK \
+                                                            else self.error_dir()
                     else:
-                        for p in self.files:
-                            work = os.path.join(self.work_dir(), p)
-                            input = os.path.join(self.input_dir(), p)
-                            move_file(
-                                work,
-                                input
-                            )
-                        self.files = []
+                        # We are in dry-run, put back the files in input dir
+                        move_files_to = self.input_dir()
+                    
+                    # Move the files
+                    for p in self.files:
+                        work = os.path.join(self.work_dir(), p)
+                        target = os.path.join(move_files_to, p)
+                        move_file(
+                            work,
+                            target
+                        )
+                    self.files = []
 
         if hasattr(self, 'postprocess'):
             self.postprocess(instances)
