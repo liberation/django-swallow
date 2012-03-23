@@ -8,6 +8,9 @@ from django.conf import settings
 from swallow.exception import StopConfig
 
 
+logger = logging.getLogger('swallow.config')
+
+
 class BaseConfig(object):
     """Main class to define a new import.
 
@@ -98,7 +101,6 @@ class BaseConfig(object):
 
     def run(self):
         """Process recursivly ``input_dir``"""
-        from util import logger
         logger.info('run %s in %s' % (
             type(self).__name__,
             self.input_dir(),
@@ -139,7 +141,7 @@ class BaseConfig(object):
             instances = []
 
         # avoids circular imports
-        from util import log_exception, logger, move_file  # FIXME
+        from util import log_exception, move_file  # FIXME
 
         logger.info('process_recursively %s' % path)
 
