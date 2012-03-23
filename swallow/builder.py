@@ -126,7 +126,7 @@ class BaseBuilder(object):
                     # save to be able to populate m2m fields
                     try:
                         instance.save()
-                    except IntegrityError, e:
+                    except Exception, e:
                         msg = 'exception raised during '
                         msg += 'instance save'
                         log_exception(e, msg)
