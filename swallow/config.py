@@ -12,6 +12,9 @@ from swallow.util import format_exception, move_file, smart_decode, is_utf8
 log = logging.getLogger('swallow.config')
 
 
+logger = logging.getLogger('swallow.config')
+
+
 class BaseConfig(object):
     """Main class to define a new import.
 
