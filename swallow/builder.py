@@ -3,11 +3,13 @@ from functools import wraps
 from contextlib import contextmanager
 
 from django.db.models.fields import AutoField
+from django.db import DatabaseError
 
 from swallow.exception import StopConfig, StopBuilder, StopMapper
+from swallow.util import format_exception
 
 
-logger = logging.getLogger('swallow.builder')
+log = logging.getLogger('swallow.builder')
 
 
 @contextmanager
@@ -74,22 +76,27 @@ class BaseBuilder(object):
                 instance = self.process_mapper(mapper)
             except StopBuilder, e:
                 # Implementor has asked to totally stop the import
-                msg = u"Import of builder %s has been stopped" % self
-                msg += u"Reason is: \n %s" % e.message
-                logger.warning(msg)
+                msg = u"Import of builder %s has been stopped\n" % self
+                log_message = format_exception(e, msg)
+                log.warning(log_message)
                 # FIXME: empty instances?
                 break
             except StopConfig:
                 raise  # Propagate stop order to Config
             except StopMapper, e:
-                msg = u"Import of mapper %s has been stopped" % mapper
-                msg += u"Reason is: \n %s" % e.message
-                logger.warning(msg)
+                msg = u"Import of mapper %s has been stopped\n" % mapper
+                log_message = format_exception(e, msg)
+                log.warning(log_message)
+                continue  # To next mapper
+            except DatabaseError, e:
+                msg = u"DatabaseError exception on %s\n" % mapper
+                log_message = format_exception(e, msg)
+                log.error(log_message)
                 continue  # To next mapper
             except Exception, e:
-                msg = u"Unhandled exception on %s" % mapper
-                msg += u"Error message is: \n %s" % e.message
-                logger.error(msg)
+                msg = u"Unhandled exception on %s\n" % mapper
+                log_message = format_exception(e, msg)
+                log.error(log_message)
                 continue  # To next mapper
             else:
                 if instance:
@@ -98,7 +105,7 @@ class BaseBuilder(object):
         return instances
 
     def process_mapper(self, mapper):
-        logger.info('processing of %s mapper starts' % mapper)
+        log.info('processing of %s mapper starts' % mapper)
         if not self.skip(mapper):
             instance = self.get_or_create_instance(mapper)
             modified = self.instance_is_locally_modified(instance)
@@ -144,8 +151,8 @@ class BaseBuilder(object):
                         # Unhandled error
                         # Do not stop import, just continue to next field
                         msg = u"Unhandled exception on m2m %s" % field.name
-                        msg += u"Error message is: \n %s" % e.message
-                        logger.error(msg)
+                        log_message = format_exception(e, msg)
+                        log.error(log_message)
                         continue  # To next field
 
             # --- Populate related fields
@@ -167,15 +174,17 @@ class BaseBuilder(object):
                         # Unhandled error
                         # Do not stop import, just continue to next field
                         msg = u"Unhandled exception on related %s" % accessor_name
-                        msg += u"Error message is: \n %s" % e.message
-                        logger.error(msg)
+                        log_message = format_exception(e, msg)
+                        log.error(log_message)
                         continue  # To next field
         else:
-            logger.info('skip %s mapper' % mapper)
+            log.info('skip %s mapper' % mapper)
             instance = None
         return instance
 
     def set_field(self, populator, instance, mapper, field_name):
+#        if field_name == "original_file":
+#            import ipdb; ipdb.set_trace()
         if field_name in populator._fields_one_to_one:
             # it's a mapper property
             value = getattr(mapper, field_name)
@@ -230,10 +239,10 @@ class BaseBuilder(object):
             instance = self.Model.objects.get(
                 **mapper._instance_filters
             )
-            logger.info('fetched instance')
+            log.info('fetched instance')
         except self.Model.DoesNotExist:
             instance = self.Model(**mapper._instance_filters)
-            logger.info('created instance')
+            log.info('created instance')
         return instance
 
 

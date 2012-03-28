@@ -6,6 +6,10 @@ from time import time
 from django.conf import settings
 
 from swallow.exception import StopConfig
+from swallow.util import format_exception, move_file, smart_decode, is_utf8
+
+
+log = logging.getLogger('swallow.config')
 
 
 class BaseConfig(object):
@@ -82,7 +86,6 @@ class BaseConfig(object):
         self.on_error = False  # this should reset at for each file
 
     def open(self, relative_path):
-        from util import move_file
         path = os.path.join(
             self.input_dir(),
             relative_path
@@ -98,8 +101,7 @@ class BaseConfig(object):
 
     def run(self):
         """Process recursivly ``input_dir``"""
-        from util import logger
-        logger.info('run %s in %s' % (
+        log.info(u'run %s in %s' % (
             type(self).__name__,
             self.input_dir(),
         ))
@@ -115,15 +117,11 @@ class BaseConfig(object):
 
     def mv_files_from_work_dir(self, to_dir):
         """Move current endpoints files from work dir to to_dir."""
-        from util import move_file  # FIXME
         # Move the endpoint files
         for p in self.files:
             work = os.path.join(self.work_dir(), p)
             target = os.path.join(to_dir, p)
-            move_file(
-                work,
-                target
-            )
+            move_file(work, target)
         self.files = []
 
     def process_recursively(self, path=""):
@@ -138,10 +136,7 @@ class BaseConfig(object):
         if hasattr(self, 'postprocess'):
             instances = []
 
-        # avoids circular imports
-        from util import log_exception, logger, move_file  # FIXME
-
-        logger.info('process_recursively %s' % path)
+        log.info(u'process_recursively %s' % path)
 
         input, work, error, done = self.paths(path)
 
@@ -153,13 +148,18 @@ class BaseConfig(object):
             os.makedirs(done)
         # input_dir should exists
 
-        logger.info('work_path %s' % work)
+        log.info(u'work_path %s' % work)
 
         for f in os.listdir(input):
             # Relative file path from current path
             partial_file_path = os.path.join(path, f)
             # Absolute file path
             input_file_path = os.path.join(input, f)
+
+            # For now, do not process non utf-8 file names  #FIXME
+            if not is_utf8(f):
+                error_file_path = os.path.join(self.error_dir(), f)
+                move_file(input_file_path, error_file_path)
 
             if os.path.isdir(input_file_path):
                 self.process_recursively(partial_file_path)
@@ -179,33 +179,30 @@ class BaseConfig(object):
                     st_mtime = os.stat(input_file_path).st_mtime
                     age = time() - st_mtime
                     if age < min_age:
-                        logger.info("Skipping too recent file %s" % input_file_path)
+                        log.info(u"Skipping too recent file %s" % input_file_path)
                         continue
 
                 # --- Load and process builder for file
                 builder = self.load_builder(partial_file_path)
                 if builder is None:
-                    logger.info('skip file %s' % input_file_path)
+                    log.info(u'skip file %s' % input_file_path)
                     continue
                 else:
-                    logger.info('match %s' % partial_file_path)
+                    log.info(u'match %s' % partial_file_path)
                     if not self.dryrun:
                         try:
                             new_instances = builder.process_and_save()
                         except StopConfig, e:
                             # this is a user controlled exception
-                            msg = u'Import stopped for %s' % self
-                            msg += u"Reason is: \n%s" % e.message
-                            logger.warning(msg)
+                            context_message = u'Import stopped for %s' % self
+                            log_message = format_exception(e, context_message)
+                            log.warning(log_message)
                             self.mv_files_from_work_dir(to_dir=self.error_dir())
                             break
                         except Exception, exception:
-                            msg = 'builder processing of'
-                            msg += ' %s failed' % input_file_path
-                            log_exception(
-                                exception,
-                                msg
-                            )
+                            msg = u'builder processing of %s failed' % input_file_path
+                            log_message = format_exception(e, msg)
+                            log.error(log_message)
                             self.mv_files_from_work_dir(to_dir=self.error_dir())
                         else:
                             if hasattr(self, 'postprocess'):
@@ -238,7 +235,7 @@ class BaseConfig(object):
                 st_mtime = os.stat(input_file_path).st_mtime
                 age = time() - st_mtime
                 if age > grace_period:
-                    logger.info("Removing old file from input dir: %s" % input_file_path)
+                    log.info(u"Removing old file from input dir: %s" % input_file_path)
                     move_file(input_file_path, done_file_path)
 
         if hasattr(self, 'postprocess'):

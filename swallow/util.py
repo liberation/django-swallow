@@ -7,32 +7,49 @@ from django.conf import settings
 from django.utils.importlib import import_module
 
 
-logger = logging.getLogger('swallow.util')
+log = logging.getLogger('swallow.util')
 
 
-def log_exception(
-        exception,
-        action,
-    ):
-    """log exception and move file if provided"""
+def format_exception(exception, context_message):
+    """Centralize the formatting of an exception, with traceback."""
     tb = traceback.format_exc()
-    msg = '%s with %s' % (
-        action,
-        exception
-    )
-    logger.error('%s\n%s' % (msg, tb))
+    output = '*' * 80
+    try:
+        output += u'\%s' % context_message
+        output += u'\%s' % exception
+        output += u'\%s' % exception.message
+    except Exception, e:
+        output = "Problem during exception message formatting, doh!"
+    output = u'%s\n\n%s' % (output, tb)
+    output += '_' * 80
+    return output
+
+
+def is_utf8(s):
+    try:
+        s = s.decode('utf-8')
+        return True
+    except:
+        return False
+
+
+def smart_decode(s):
+    """Convert a str to unicode when you cannot be sure of its encoding."""
+    if isinstance(s, unicode):
+        return s
+    try:
+        return s.decode('utf-8')
+    except:
+        return s.decode('latin-1')
 
 
 def move_file(src, dst):
-    logger.info('move %s to %s',
-        src,
-        dst,
-    )
+    log.info(u'move %s to %s', smart_decode(src), smart_decode(dst))
     try:
         shutil.move(src, dst)
     except shutil.Error, exception:
         # most likely the file already exists
-        logger.debug("can't move %s to %s" % (src, dst))
+        log.debug(u"can't move %s to %s" % (smart_decode(src), smart_decode(dst)))
         dst_file = os.path.join(dst, os.path.basename(src))
         if os.path.exists(dst_file):
             # if the file already exists the import failed previously
@@ -43,7 +60,8 @@ def move_file(src, dst):
         else:  # arg! it's something else
                # keep the file we don't want to loose data
             msg = '%s is buggy, tried to move to error but failed' % src
-            log_exception(exception, msg)
+            log_msg = format_exception(exception, msg)
+            log.error(log_msg)
 
 
 def get_config(path):
