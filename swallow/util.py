@@ -14,6 +14,7 @@ def format_exception(exception, context_message):
     """Centralize the formatting of an exception, with traceback."""
     tb = traceback.format_exc()
     output = '*' * 80
+    output += '\n'
     try:
         output += u'\%s' % context_message
         output += u'\%s' % exception
@@ -21,6 +22,7 @@ def format_exception(exception, context_message):
     except Exception, e:
         output = "Problem during exception message formatting, doh!"
     output = u'%s\n\n%s' % (output, tb)
+    output += '\n'
     output += '_' * 80
     return output
 
