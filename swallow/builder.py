@@ -70,13 +70,14 @@ class BaseBuilder(object):
         transaction.
         """
         instances = []
+        unhandled_errors = False
 
         for mapper in self.Mapper._iter_mappers(self):
             try:
                 instance = self.process_mapper(mapper)
             except StopBuilder, e:
                 # Implementor has asked to totally stop the import
-                msg = u"Import of builder %s has been stopped\n" % self
+                msg = u"Import of builder %s has been stopped" % self
                 log_message = format_exception(e, msg)
                 log.warning(log_message)
                 # FIXME: empty instances?
@@ -84,17 +85,19 @@ class BaseBuilder(object):
             except StopConfig:
                 raise  # Propagate stop order to Config
             except StopMapper, e:
-                msg = u"Import of mapper %s has been stopped\n" % mapper
+                msg = u"Import of mapper %s has been stopped" % mapper
                 log_message = format_exception(e, msg)
                 log.warning(log_message)
                 continue  # To next mapper
             except DatabaseError, e:
-                msg = u"DatabaseError exception on %s\n" % mapper
+                unhandled_errors = True
+                msg = u"DatabaseError exception on %s" % mapper
                 log_message = format_exception(e, msg)
                 log.error(log_message)
                 continue  # To next mapper
             except Exception, e:
-                msg = u"Unhandled exception on %s\n" % mapper
+                unhandled_errors = True
+                msg = u"Unhandled exception on %s" % mapper
                 log_message = format_exception(e, msg)
                 log.error(log_message)
                 continue  # To next mapper
@@ -102,7 +105,7 @@ class BaseBuilder(object):
                 if instance:
                     # Instance is None if mapper has be skipped in skip method
                     instances.append(instance)
-        return instances
+        return instances, unhandled_errors
 
     def process_mapper(self, mapper):
         log.info('processing of %s mapper starts' % mapper)
@@ -286,7 +289,7 @@ class from_builder(object):
                     # created as argument
                     args.append(self._instance)
                 builder = this.BuilderClass(*args)
-                p = builder.process_and_save()
+                p, unhandled_errors = builder.process_and_save()
                 instances.extend(p)  # FIXME: This is not consistent with
                                      # BaseConfig way of gathering created
                                      # instances

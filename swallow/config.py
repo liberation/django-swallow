@@ -194,7 +194,7 @@ class BaseConfig(object):
                     log.info(u'match %s' % partial_file_path)
                     if not self.dryrun:
                         try:
-                            new_instances = builder.process_and_save()
+                            new_instances, unhandled_errors = builder.process_and_save()
                         except StopConfig, e:
                             # this is a user controlled exception
                             context_message = u'Import stopped for %s' % self
@@ -210,7 +210,9 @@ class BaseConfig(object):
                         else:
                             if hasattr(self, 'postprocess'):
                                 instances.append(new_instances)
-                            self.mv_files_from_work_dir(to_dir=self.done_dir())
+                            file_target = unhandled_errors and self.error_dir() \
+                                                                or self.done_dir()
+                            self.mv_files_from_work_dir(to_dir=file_target)
                     else:
                         # We are in dry-run, put back the files in input dir
                         self.mv_files_from_work_dir(to_dir=self.input_dir())

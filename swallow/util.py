@@ -13,11 +13,12 @@ log = logging.getLogger('swallow.util')
 def format_exception(exception, context_message):
     """Centralize the formatting of an exception, with traceback."""
     tb = traceback.format_exc()
-    output = '*' * 80
+    output = '\n'
+    output += '*' * 80
     output += '\n'
     try:
         output += u'\n%s' % context_message
-        output += u'\n%s' % exception
+        output += u'\n%s' % exception.__class__.__name__
         output += u'\n%s' % exception.message
     except Exception, e:
         output = "\nProblem during exception message formatting, doh!"
