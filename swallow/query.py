@@ -1,9 +1,10 @@
 import os
+import bisect
 
 from sneak.query import ListQueryResult
 
-from models import VirtualFileSystemElement, SwallowConfiguration
-from util import get_configurations
+from swallow.models import VirtualFileSystemElement, SwallowConfiguration
+from swallow.util import get_configurations
 
 
 class QueryResult(ListQueryResult):
@@ -74,8 +75,20 @@ class VirtualFileSystemQuerySet(ListQueryResult):
                 configuration = CONFIGURATIONS[configuration_name]
                 path = getattr(configuration, '%s_dir' % swallow_directory)()
                 path = os.path.join(path, *path_components)
+                # used to store modification date of fse elements
+                # this maps one to one with ``fs``
+                # modification_date of ``fs[i]`` is ``modification_date[i]``
+                modification_dates = []
                 for f in os.listdir(path):
                     full_path = os.path.join(path, f)
+                    # locate the insertion point of full_path.modification_date
+                    # and insert in the same place in ``fs``
+                    modification_date = -os.stat(full_path).st_mtime
+                    index = bisect.bisect_left(
+                        modification_dates,
+                        modification_date,
+                    )
+                    modification_dates.insert(index, modification_date)
                     name_tail = list(path_components)
                     name_tail.append(f)
                     name = os.path.join(
@@ -84,7 +97,7 @@ class VirtualFileSystemQuerySet(ListQueryResult):
                         *name_tail
                     )
                     fse = VirtualFileSystemElement(name, full_path)
-                    fs.append(fse)
+                    fs.insert(index, fse)
         return QueryResult(fs)
 
 
