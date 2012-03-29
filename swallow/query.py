@@ -75,6 +75,8 @@ class VirtualFileSystemQuerySet(ListQueryResult):
                 configuration = CONFIGURATIONS[configuration_name]
                 path = getattr(configuration, '%s_dir' % swallow_directory)()
                 path = os.path.join(path, *path_components)
+                # FIXME: this is yet another hack
+                # See if it's It might be possible to use Django Admin filtering
                 # used to store modification date of fse elements
                 # this maps one to one with ``fs``
                 # modification_date of ``fs[i]`` is ``modification_date[i]``
