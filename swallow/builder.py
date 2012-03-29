@@ -1,4 +1,6 @@
+import sys
 import logging
+
 from functools import wraps
 from contextlib import contextmanager
 
@@ -78,28 +80,24 @@ class BaseBuilder(object):
             except StopBuilder, e:
                 # Implementor has asked to totally stop the import
                 msg = u"Import of builder %s has been stopped" % self
-                log_message = format_exception(e, msg)
-                log.warning(log_message)
+                log.warning(msg, exc_info=sys.exc_info())
                 # FIXME: empty instances?
                 break
             except StopConfig:
                 raise  # Propagate stop order to Config
             except StopMapper, e:
                 msg = u"Import of mapper %s has been stopped" % mapper
-                log_message = format_exception(e, msg)
-                log.warning(log_message)
+                log.warning(msg, exc_info=sys.exc_info())
                 continue  # To next mapper
             except DatabaseError, e:
                 unhandled_errors = True
                 msg = u"DatabaseError exception on %s" % mapper
-                log_message = format_exception(e, msg)
-                log.error(log_message)
+                log.error(msg, exc_info=sys.exc_info())
                 continue  # To next mapper
             except Exception, e:
                 unhandled_errors = True
                 msg = u"Unhandled exception on %s" % mapper
-                log_message = format_exception(e, msg)
-                log.error(log_message)
+                log.error(msg, exc_info=sys.exc_info())
                 continue  # To next mapper
             else:
                 if instance:
@@ -154,8 +152,7 @@ class BaseBuilder(object):
                         # Unhandled error
                         # Do not stop import, just continue to next field
                         msg = u"Unhandled exception on m2m %s" % field.name
-                        log_message = format_exception(e, msg)
-                        log.error(log_message)
+                        log.error(msg, exc_info=sys.exc_info())
                         continue  # To next field
 
             # --- Populate related fields
@@ -177,8 +174,7 @@ class BaseBuilder(object):
                         # Unhandled error
                         # Do not stop import, just continue to next field
                         msg = u"Unhandled exception on related %s" % accessor_name
-                        log_message = format_exception(e, msg)
-                        log.error(log_message)
+                        log.error(msg, exc_info=sys.exc_info())
                         continue  # To next field
         else:
             log.info('skip %s mapper' % mapper)

@@ -198,14 +198,12 @@ class BaseConfig(object):
                         except StopConfig, e:
                             # this is a user controlled exception
                             context_message = u'Import stopped for %s' % self
-                            log_message = format_exception(e, context_message)
-                            log.warning(log_message)
+                            log.warning(msg, exc_info=sys.exc_info())
                             self.mv_files_from_work_dir(to_dir=self.error_dir())
                             break
                         except Exception, e:
                             msg = u'builder processing of %s failed' % input_file_path
-                            log_message = format_exception(e, msg)
-                            log.error(log_message)
+                            log.error(msg, exc_info=sys.exc_info())
                             self.mv_files_from_work_dir(to_dir=self.error_dir())
                         else:
                             if hasattr(self, 'postprocess'):
