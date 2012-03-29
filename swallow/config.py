@@ -202,7 +202,7 @@ class BaseConfig(object):
                             log.warning(log_message)
                             self.mv_files_from_work_dir(to_dir=self.error_dir())
                             break
-                        except Exception, exception:
+                        except Exception, e:
                             msg = u'builder processing of %s failed' % input_file_path
                             log_message = format_exception(e, msg)
                             log.error(log_message)
