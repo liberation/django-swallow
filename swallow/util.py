@@ -16,11 +16,11 @@ def format_exception(exception, context_message):
     output = '*' * 80
     output += '\n'
     try:
-        output += u'\%s' % context_message
-        output += u'\%s' % exception
-        output += u'\%s' % exception.message
+        output += u'\n%s' % context_message
+        output += u'\n%s' % exception
+        output += u'\n%s' % exception.message
     except Exception, e:
-        output = "Problem during exception message formatting, doh!"
+        output = "\nProblem during exception message formatting, doh!"
     output = u'%s\n\n%s' % (output, tb)
     output += '\n'
     output += '_' * 80
