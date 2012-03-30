@@ -22,6 +22,10 @@ class BaseConfig(object):
     least override :method:`swallow.config.BaseConfig.load_builder`.
     """
 
+    QUARANTINE = 0  # Age min of a file in input_dir to be processed
+    GRACE_PERIOD = 60 * 60 * 24  # Max time a secondary file will stay in input_dir
+                                 # if not processed with a config.open()
+
     @classmethod
     def input_dir(cls):
         """Directory where to looks for new files to process"""
@@ -177,7 +181,7 @@ class BaseConfig(object):
                 # avoid processing file while they are downloaded in input dir
                 # and to minimize risk of missing dependency files
                 # If you don't care about this, just do not set it in settings
-                min_age = getattr(settings, "SWALLOW_QUARANTINE", 0)  # seconds
+                min_age = self.QUARANTINE  # seconds
                 if min_age > 0:
                     st_mtime = os.stat(input_file_path).st_mtime
                     age = time() - st_mtime
@@ -234,7 +238,7 @@ class BaseConfig(object):
             for f in os.listdir(input):
                 input_file_path = os.path.join(input, f)
                 done_file_path = os.path.join(done, f)
-                grace_period = getattr(settings, "SWALLOW_GRACE_PERIOD", 60 * 60 * 24)
+                grace_period = self.SWALLOW_GRACE_PERIOD
                 st_mtime = os.stat(input_file_path).st_mtime
                 age = time() - st_mtime
                 if age > grace_period:
