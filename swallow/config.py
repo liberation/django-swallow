@@ -22,9 +22,11 @@ class BaseConfig(object):
     least override :method:`swallow.config.BaseConfig.load_builder`.
     """
 
-    QUARANTINE = 0  # Age min of a file in input_dir to be processed
+    QUARANTINE = 0  # Age min (in seconds) of a file in input_dir before it
+                    # will be processed
     GRACE_PERIOD = 60 * 60 * 24  # Max time a secondary file will stay in input_dir
                                  # if not processed with a config.open()
+                                 # (in seconds)
 
     @classmethod
     def input_dir(cls):
