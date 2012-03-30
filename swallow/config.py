@@ -240,7 +240,7 @@ class BaseConfig(object):
             for f in os.listdir(input):
                 input_file_path = os.path.join(input, f)
                 done_file_path = os.path.join(done, f)
-                grace_period = self.SWALLOW_GRACE_PERIOD
+                grace_period = self.GRACE_PERIOD
                 st_mtime = os.stat(input_file_path).st_mtime
                 age = time() - st_mtime
                 if age > grace_period:
