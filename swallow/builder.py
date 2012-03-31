@@ -156,7 +156,6 @@ class BaseBuilder(object):
                         # Close django connection, as it doest not do it by itself
                         # when things go wrong
                         close_connection()
-                        unhandled_errors = True
                         msg = u"DatabaseError exception on m2m %s" % field.name
                         log.error(msg, exc_info=sys.exc_info())
                         continue  # To next field
@@ -186,7 +185,6 @@ class BaseBuilder(object):
                         # Close django connection, as it doest not do it by itself
                         # when things go wrong
                         close_connection()
-                        unhandled_errors = True
                         msg = u"DatabaseError exception on related %s" % accessor_name
                         log.error(msg, exc_info=sys.exc_info())
                         continue  # To next field
