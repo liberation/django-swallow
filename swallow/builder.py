@@ -5,7 +5,7 @@ from functools import wraps
 from contextlib import contextmanager
 
 from django.db.models.fields import AutoField
-from django.db import DatabaseError
+from django.db import DatabaseError, close_connection
 
 from swallow.exception import StopConfig, StopBuilder, StopMapper
 from swallow.util import format_exception
@@ -90,6 +90,10 @@ class BaseBuilder(object):
                 log.warning(msg, exc_info=sys.exc_info())
                 continue  # To next mapper
             except DatabaseError, e:
+                # Close django connection, as it doest not do it by itself
+                # when things go wrong
+                # cf. https://docs.djangoproject.com/en/dev/topics/db/transactions/#django-s-default-transaction-behavior
+                close_connection()
                 unhandled_errors = True
                 msg = u"DatabaseError exception on %s" % mapper
                 log.error(msg, exc_info=sys.exc_info())
@@ -148,6 +152,14 @@ class BaseBuilder(object):
                         # Implementor has asked the import to be stopped, so
                         # propagate it
                         raise
+                    except DatabaseError, e:
+                        # Close django connection, as it doest not do it by itself
+                        # when things go wrong
+                        close_connection()
+                        unhandled_errors = True
+                        msg = u"DatabaseError exception on m2m %s" % field.name
+                        log.error(msg, exc_info=sys.exc_info())
+                        continue  # To next field
                     except Exception, e:
                         # Unhandled error
                         # Do not stop import, just continue to next field
@@ -170,6 +182,14 @@ class BaseBuilder(object):
                         # Implementor has asked the import to be stopped, so
                         # propagate it
                         raise
+                    except DatabaseError, e:
+                        # Close django connection, as it doest not do it by itself
+                        # when things go wrong
+                        close_connection()
+                        unhandled_errors = True
+                        msg = u"DatabaseError exception on related %s" % accessor_name
+                        log.error(msg, exc_info=sys.exc_info())
+                        continue  # To next field
                     except Exception, e:
                         # Unhandled error
                         # Do not stop import, just continue to next field
