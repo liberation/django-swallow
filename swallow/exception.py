@@ -22,6 +22,11 @@ class StopConfig(SwallowException):
     pass
 
 
+class PostponeBuilder(SwallowException):
+    """Raise this exception to stop process an endpoint file and keep it to next run."""
+    pass
+
+
 class BuilderException(SwallowException):
     pass
 

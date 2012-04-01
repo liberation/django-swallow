@@ -1,3 +1,4 @@
+import sys
 import os
 import logging
 
@@ -5,7 +6,7 @@ from time import time
 
 from django.conf import settings
 
-from swallow.exception import StopConfig
+from swallow.exception import StopConfig, PostponeBuilder
 from swallow.util import format_exception, move_file, smart_decode, is_utf8
 
 
@@ -203,20 +204,28 @@ class BaseConfig(object):
                             new_instances, unhandled_errors = builder.process_and_save()
                         except StopConfig, e:
                             # this is a user controlled exception
-                            context_message = u'Import stopped for %s' % self
+                            msg = u'Import stopped for %s' % self
                             log.warning(msg, exc_info=sys.exc_info())
-                            self.mv_files_from_work_dir(to_dir=self.error_dir())
+                            to_dir = self.error_dir()
                             break
+                        except PostponeBuilder, e:
+                            # Implementor as asked to postpone current process
+                            msg = u'Builder postponed for %s' % self
+                            log.warning(msg, exc_info=sys.exc_info())
+                            # Do not move files, keep them for next run
+                            to_dir = self.input_dir()
+                            continue  # to next file
                         except Exception, e:
                             msg = u'builder processing of %s failed' % input_file_path
                             log.error(msg, exc_info=sys.exc_info())
-                            self.mv_files_from_work_dir(to_dir=self.error_dir())
+                            to_dir = self.error_dir()
                         else:
                             if hasattr(self, 'postprocess'):
                                 instances.append(new_instances)
-                            file_target = unhandled_errors and self.error_dir() \
-                                                                or self.done_dir()
-                            self.mv_files_from_work_dir(to_dir=file_target)
+                            to_dir = unhandled_errors and self.error_dir() \
+                                                              or self.done_dir()
+                        finally:
+                            self.mv_files_from_work_dir(to_dir=to_dir)
                     else:
                         # We are in dry-run, put back the files in input dir
                         self.mv_files_from_work_dir(to_dir=self.input_dir())

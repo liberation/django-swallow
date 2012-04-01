@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from django.db.models.fields import AutoField
 from django.db import DatabaseError, close_connection
 
-from swallow.exception import StopConfig, StopBuilder, StopMapper
+from swallow.exception import StopConfig, StopBuilder, StopMapper, PostponeBuilder
 from swallow.util import format_exception
 
 
@@ -85,6 +85,8 @@ class BaseBuilder(object):
                 break
             except StopConfig:
                 raise  # Propagate stop order to Config
+            except PostponeBuilder:
+                raise  # Propagate postpone order to Config
             except StopMapper, e:
                 msg = u"Import of mapper %s has been stopped" % mapper
                 log.warning(msg, exc_info=sys.exc_info())
@@ -200,8 +202,6 @@ class BaseBuilder(object):
         return instance
 
     def set_field(self, populator, instance, mapper, field_name):
-#        if field_name == "original_file":
-#            import ipdb; ipdb.set_trace()
         if field_name in populator._fields_one_to_one:
             # it's a mapper property
             value = getattr(mapper, field_name)
