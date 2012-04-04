@@ -220,7 +220,7 @@ class BaseConfig(object):
                             log.error(msg, exc_info=sys.exc_info())
                             to_dir = self.error_dir()
                         else:
-                            if hasattr(self, 'postprocess'):
+                            if hasattr(self, 'postprocess') and new_instances:
                                 instances.append(new_instances)
                             to_dir = unhandled_errors and self.error_dir() \
                                                               or self.done_dir()
