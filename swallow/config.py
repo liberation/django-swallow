@@ -249,6 +249,8 @@ class BaseConfig(object):
             for f in os.listdir(input):
                 input_file_path = os.path.join(input, f)
                 done_file_path = os.path.join(done, f)
+                if os.path.isdir(input_file_path):
+                    continue
                 grace_period = self.GRACE_PERIOD
                 st_mtime = os.stat(input_file_path).st_mtime
                 age = time() - st_mtime
