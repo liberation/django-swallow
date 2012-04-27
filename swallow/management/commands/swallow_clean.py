@@ -21,11 +21,11 @@ class Command(BaseCommand):
         make_option('--dirs',
             action='store',
             dest='dirs',
-            help='Which directory to clean'),
+            help='Comma separated list of directories to clean (eg. "done,work")'),
         make_option('--age',
             action='store',
             dest='age',
-            help='Minimum age a file should have to be deleted'),
+            help='Minimum age (in seconds) a file should have to be deleted'),
         )
 
     def handle(self, *config_module_names, **options):
