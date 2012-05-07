@@ -11,7 +11,7 @@ circuvent this convention if you need to do factorisation.
 
 If you have several imports you might want to store all import modules in one 
 Django application. A possible solution to deal with this situation 
-is to use a django application to store all the imports within a module named 
+is to use a django application to store each import in a module named 
 after its import feature. If we used this convention in the example 
 project ``config.py``, would be named ``github``, ``feed`` or 
 ``feed_import`` to better emphasizes what the module purpose is.
@@ -64,7 +64,7 @@ Possible solutions are:
 
     def postprocess(self, instances):
         # head is associations information
-        # it's the first builders returned by ``load_builders``
+        # it's the output of the first builder yieled by ``load_builders``
         associations, instances = instances[0], instances[1:]
         for start_identifier, end_identifier in associations:
             # an association is tuple (identifier_start, identifier_end)
@@ -84,6 +84,4 @@ up to the method to do proper population with distintive code for
 complex value computation, foreign key, simple M2M fields and M2M fields
 supported by a through model. The population method has no parameters,
 instead the populator reference mapper and model instance respectivly as 
-``self._mapper`` and ``self._instance``. You don't necessarily need 
-to populate only the field for which the method was called, that said
-it's not recommanded.
+``self._mapper`` and ``self._instance``. 
