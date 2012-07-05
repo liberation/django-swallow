@@ -1,13 +1,13 @@
 import os
 import bisect
 
-from sneak.query import ListQueryResult
+from sneak.query import ListQuerySet
 
 from swallow.models import VirtualFileSystemElement, SwallowConfiguration
 from swallow.util import get_configurations
 
 
-class QueryResult(ListQueryResult):
+class QueryResult(ListQuerySet):
     """Represent a query result, basicly it provides
     dummy values for the admin so that it doesn't complain too
     much"""
@@ -22,7 +22,7 @@ class QueryResult(ListQueryResult):
         return len(self.value)
 
 
-class VirtualFileSystemQuerySet(ListQueryResult):
+class VirtualFileSystemQuerySet(ListQuerySet):
     """Custom QuerySet object to list VFS elements"""
 
     def filter(self, *args, **kwargs):
@@ -103,7 +103,7 @@ class VirtualFileSystemQuerySet(ListQueryResult):
         return QueryResult(fs)
 
 
-class SwallowConfigurationQuerySet(ListQueryResult):
+class SwallowConfigurationQuerySet(ListQuerySet):
     """Custom QuerySet object to list Swallow configurations listed
     in SWALLOW_CONFIGURATION_MODULES setting."""
 
