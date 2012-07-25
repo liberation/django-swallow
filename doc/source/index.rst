@@ -6,11 +6,11 @@
 Welcome to Django Swallow's documentation!
 ==========================================
 
-Django Swallow is an utility Django application with which you can easly import
-XML files and other documents even linked documents in database.
-
   « Simple things should be simple, complex things should be possible. » 
   `Alan Kay <http://en.wikipedia.org/wiki/Alan_Kay>`_
+
+Django Swallow is an utility Django application with which you can easly import
+XML files and other documents even linked documents in database.
 
 A simple import is defined as a set four classes ``Configuration``, 
 a ``Builder`` linked to a triptych ``Mapper``, ``Populator`` and ``Model``. 
@@ -37,11 +37,7 @@ and hosted on `github <https://github.com/liberation/django-swallow>`_.
 Getting started
 ---------------
 
-Once it is shipped you will be able to::
-
-   pip install django-swallow
-
-Until then you can tinker with the example project found in the 
+You can tinker with the example project found in the 
 `forge <https://github.com/liberation/django-swallow/tree/master/example>`_
 use the following command to retrieve the code::
 
@@ -60,7 +56,7 @@ not be needed, read carefully.
 
 **If** you use default ``Configuration`` swallow directories, you **must**
 define this path. It will be used as the root directory for every configuration
-that has not defined custom swallow directory. If you don't know, most likely
+that has not defined custom swallow directory. If you don't know, 
 you will need to define this constant.
 
 ``SWALLOW_CONFIGURATION_MODULES``

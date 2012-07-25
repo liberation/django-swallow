@@ -49,7 +49,7 @@ the configuration class, in this case ``github``, and store in it ``work``,
 
   You have to create the ``input`` directory yourself
 
-The purpose of ``load_builder`` is to instaciate a *builder* class for a given 
+The purpose of ``load_builder`` is to instanciate a *builder* class for a given 
 file to do the actual import. If ``load_builder`` returns ``None`` swallow won't
 process the file and leave it in *input* directory. Example's configuration 
 class takes advantage of this feature, so that the import only consider file 
@@ -116,7 +116,7 @@ second line the body. A mapper for this kind of file can be:
             return {'title': self.title}
 
 
-``_iter_mappers`` is a generator method that yields mapper instances. it 
+``_iter_mappers`` is a generator method that yields mapper instances. It 
 must only yield mapper instances of the class it is defined in.
 
 In the example, the mapper is defined inside the builder class, let's study it:

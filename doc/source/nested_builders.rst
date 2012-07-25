@@ -1,7 +1,7 @@
 Nested Builders
 ===============
 
-Some time documents are nested inside other documents. For instance, in the ATOM
+Sometimes documents are nested inside other documents. For instance, in the ATOM
 file format entry elements are defined inside feed elements. Both of them can be
 defined as separate Django models.
 

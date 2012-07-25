@@ -1,7 +1,7 @@
 Matching
 ========
 
-Matching is facility provided by Django Swallow that allows to build 
+Matching is a facility provided by Django Swallow that allows to build 
 population algorithm that are a bit more advanced than one to one population 
 already available through a populator class. It also allows any user having
 access to the admin area to tweak the algorithm.
@@ -33,7 +33,7 @@ An example matching xml file follows:
   </maps>
 
 It defines a list of  ``map`` elements. Each map defines a value
-to be outputed as ``column`` element. If one ``set`` element is
+to be outputed as ``column`` element value. If one ``set`` element is
 a match, the ``column`` value should be returned. Each set defines
 rules. Each elements of a set should have the name of a mapper
 property. Each of them is a rule, they are ANDed to form the set-rule.
