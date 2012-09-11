@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.test import TransactionTestCase
 
-from swallow.exception import StopMapper, StopBuilder, StopConfig
+from swallow.exception import StopImport, StopMapper, StopBuilder, StopConfig
 
 from swallow.builder import BaseBuilder
 
@@ -246,8 +246,9 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances = builder.process_and_save()
+        instances, unhandled_errors = builder.process_and_save()
 
+        self.assertFalse(unhandled_errors)
         self.assertEqual(7, len(instances))
 
     def test_skip_builder(self):
@@ -299,8 +300,9 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances = builder.process_and_save()
+        instances, unhandled_errors = builder.process_and_save()
 
+        self.assertFalse(unhandled_errors)
         self.assertEqual(1, len(instances))
         self.assertEqual(1, instances[0].simple_field)
 
@@ -355,8 +357,9 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances = builder.process_and_save()
+        instances, unhandled_errors = builder.process_and_save()
 
+        self.assertTrue(unhandled_errors)
         self.assertEqual(1, len(instances))
         self.assertEqual(1, ModelForBuilderTests.objects.count())
         self.assertEqual(1, RelatedM2M.objects.count())
@@ -412,11 +415,16 @@ class BuilderProcessAndSaveTests(TransactionTestCase):
                 return False
 
         builder = ArticleBuilder(None, None)
-        instances = builder.process_and_save()
+        instances, unhandled_errors = builder.process_and_save()
 
+        self.assertFalse(unhandled_errors)
         self.assertEqual(1, len(instances))
-        self.assertEqual(1, ModelForBuilderTests.objects.count())
         self.assertEqual(1, RelatedM2M.objects.count())
+
+        # Second object was already saved, it's not a bug:
+        # we don't want a failed Photo attached to an Article to prevent the Article
+        # from being imported, for instance.
+        self.assertEqual(2, ModelForBuilderTests.objects.count())
 
 
     def test_stop_import_on_related_m2m_field(self):
