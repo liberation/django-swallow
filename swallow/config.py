@@ -134,6 +134,12 @@ class BaseConfig(object):
             move_file(work, target)
         self.files = []
 
+    def listdir(self, dir):
+        """
+        Return the content of a directory. By default use "os.listdir".
+        """
+        return os.listdir(dir)
+
     def process_recursively(self, path=""):
         """Recusively inspect :attribute:`BaseConfig.input_dir`
         and process files using BFS
@@ -160,7 +166,7 @@ class BaseConfig(object):
 
         log.info(u'work_path %s' % work)
 
-        for f in os.listdir(input):
+        for f in self.listdir(input):
             # Relative file path from current path
             partial_file_path = os.path.join(path, f)
             # Absolute file path
@@ -246,7 +252,7 @@ class BaseConfig(object):
             # (See for example ticket #14051 in Django Trac)
             # When the Implementor has used Config.open to manage these files,
             # they already have been moved away
-            for f in os.listdir(input):
+            for f in self.listdir(input):
                 input_file_path = os.path.join(input, f)
                 done_file_path = os.path.join(done, f)
                 if os.path.isdir(input_file_path):
