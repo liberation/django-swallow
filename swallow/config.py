@@ -5,6 +5,7 @@ import logging
 from time import time
 
 from django.conf import settings
+from django.utils.text import force_unicode
 
 from swallow.exception import StopConfig, PostponeBuilder
 from swallow.util import format_exception, move_file, smart_decode, is_utf8
@@ -195,16 +196,16 @@ class BaseConfig(object):
                     st_mtime = os.stat(input_file_path).st_mtime
                     age = time() - st_mtime
                     if age < min_age:
-                        log.info(u"Skipping too recent file %s" % input_file_path)
+                        log.info(u"Skipping too recent file %s" % force_unicode(input_file_path))
                         continue
 
                 # --- Load and process builder for file
                 builder = self.load_builder(partial_file_path)
                 if builder is None:
-                    log.info(u'skip file %s' % input_file_path)
+                    log.info(u'skip file %s' % force_unicode(input_file_path))
                     continue
                 else:
-                    log.info(u'match %s' % partial_file_path)
+                    log.info(u'match %s' % force_unicode(partial_file_path))
                     if not self.dryrun:
                         try:
                             new_instances, unhandled_errors = builder.process_and_save()
@@ -261,7 +262,7 @@ class BaseConfig(object):
                 st_mtime = os.stat(input_file_path).st_mtime
                 age = time() - st_mtime
                 if age > grace_period:
-                    log.info(u"Removing old file from input dir: %s" % input_file_path)
+                    log.info(u"Removing old file from input dir: %s" % force_unicode(input_file_path))
                     move_file(input_file_path, done_file_path)
 
         if hasattr(self, 'postprocess'):
