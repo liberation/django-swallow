@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = 'Executes specified imports'
 
     option_list = BaseCommand.option_list + (
-        make_option('--dryrun',
+        make_option('--dry-run',
             action='store_true',
             dest='dryrun',
             default=False,
