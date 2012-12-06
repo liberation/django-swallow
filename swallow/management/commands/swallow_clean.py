@@ -27,11 +27,11 @@ class Command(BaseCommand):
             action='store',
             dest='age',
             help='Minimum age (in seconds) a file should have to be deleted'),
-        make_option('--move-to-error',
+        make_option('--move',
             action='store_true',
-            dest='movetoerror',
+            dest='move',
             default=False,
-            help='Move the selected files to error instead of deleting them'),
+            help='Move the selected files to the duplicate folder instead of deleting them'),
         )
 
     def handle(self, *config_module_names, **options):
@@ -50,7 +50,7 @@ class Command(BaseCommand):
         verbosity = options['verbosity']
         max_age = int(options['age'])
         dirs = options['dirs'].split(',')
-        movetoerror = options['movetoerror']
+        move = options['move']
 
         if dryrun:
             msg = 'This is a dry run. '
@@ -78,7 +78,7 @@ class Command(BaseCommand):
                             if verbosity > 0:  # Use --verbosity=0 to make it quiet
                                 self.stdout.write("%s is to be deleted\n" % file_path)
                             if not dryrun:
-                                if movetoerror:
+                                if move:
                                     duplicate_path = getattr(ConfigClass, 'duplicate_dir')()
                                     try:
                                         os.mkdir(duplicate_path)
