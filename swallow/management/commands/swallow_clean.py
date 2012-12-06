@@ -1,4 +1,5 @@
 import os
+import shutil
 from time import time
 from optparse import make_option
 
@@ -26,6 +27,11 @@ class Command(BaseCommand):
             action='store',
             dest='age',
             help='Minimum age (in seconds) a file should have to be deleted'),
+        make_option('--move-to-error',
+            action='store_true',
+            dest='movetoerror',
+            default=False,
+            help='Move the selected files to error instead of deleting them'),
         )
 
     def handle(self, *config_module_names, **options):
@@ -44,6 +50,7 @@ class Command(BaseCommand):
         verbosity = options['verbosity']
         max_age = int(options['age'])
         dirs = options['dirs'].split(',')
+        movetoerror = options['movetoerror']
 
         if dryrun:
             msg = 'This is a dry run. '
@@ -66,8 +73,18 @@ class Command(BaseCommand):
                         file_path = os.path.join(dirpath, filename)
                         st_mtime = os.stat(file_path).st_mtime
                         age = time() - st_mtime
+
                         if age > max_age:
                             if verbosity > 0:  # Use --verbosity=0 to make it quiet
                                 self.stdout.write("%s is to be deleted\n" % file_path)
                             if not dryrun:
-                                os.remove(file_path)
+                                if movetoerror:
+                                    duplicate_path = getattr(ConfigClass, 'duplicate_dir')()
+                                    try:
+                                        os.mkdir(duplicate_path)
+                                    except OSError,e:
+                                        pass # the directory already exists
+                                    new_file_path = os.path.join(duplicate_path, filename)
+                                    shutil.move(file_path, new_file_path)
+                                else:
+                                    os.remove(file_path)

@@ -74,6 +74,21 @@ class BaseConfig(object):
         )
         return path
 
+    @classmethod
+    def duplicate_dir(cls):
+        """
+        directory used to put already processed files 
+        that are still in the input directory,
+        we the move them to this directory 
+        so they are not processed again and override the work already done.
+        """
+        class_name = cls.__name__.lower()
+        path = os.path.join(
+            settings.SWALLOW_DIRECTORY,
+            class_name,
+            'duplicate')
+        return path
+    
     def load_builder(self, partial_file_path):
         """Should load a :class`:swallow.builder.BaseBuilder` class and return
         it for processing.
