@@ -24,7 +24,7 @@ admin.site.register(Matching)
 class VirtualFileSystemChangeListView(ChangeList):
     """Override the changelist for VFS elements"""
 
-    def get_query_set(self):
+    def get_query_set(self, request=None):
         # filetering is already done by VirtualFilesystemModelAdmin
         return self.root_query_set
 
