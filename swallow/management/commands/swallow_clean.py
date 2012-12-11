@@ -75,15 +75,16 @@ class Command(BaseCommand):
                         age = time() - st_mtime
 
                         if age > max_age:
+                            duplicate_path = getattr(ConfigClass, 'duplicate_dir')()
                             if verbosity > 0:  # Use --verbosity=0 to make it quiet
-                                self.stdout.write("%s is to be deleted\n" % file_path)
+                                if move:
+                                    self.stdout.write("%s is to be moved to %s\n" % (file_path, duplicate_path))
+                                else:
+                                    self.stdout.write("%s is to be deleted\n" % file_path)
                             if not dryrun:
                                 if move:
-                                    duplicate_path = getattr(ConfigClass, 'duplicate_dir')()
-                                    try:
+                                    if not os.path.exists(duplicate_path)
                                         os.mkdir(duplicate_path)
-                                    except OSError,e:
-                                        pass # the directory already exists
                                     new_file_path = os.path.join(duplicate_path, filename)
                                     shutil.move(file_path, new_file_path)
                                 else:
