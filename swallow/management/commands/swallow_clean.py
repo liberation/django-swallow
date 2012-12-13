@@ -83,7 +83,7 @@ class Command(BaseCommand):
                                     self.stdout.write("%s is to be deleted\n" % file_path)
                             if not dryrun:
                                 if move:
-                                    if not os.path.exists(duplicate_path)
+                                    if not os.path.exists(duplicate_path):
                                         os.mkdir(duplicate_path)
                                     new_file_path = os.path.join(duplicate_path, filename)
                                     shutil.move(file_path, new_file_path)
