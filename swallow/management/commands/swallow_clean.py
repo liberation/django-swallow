@@ -1,4 +1,5 @@
 import os
+import shutil
 from time import time
 from optparse import make_option
 
@@ -26,6 +27,11 @@ class Command(BaseCommand):
             action='store',
             dest='age',
             help='Minimum age (in seconds) a file should have to be deleted'),
+        make_option('--move',
+            action='store_true',
+            dest='move',
+            default=False,
+            help='Move the selected files to the duplicate folder instead of deleting them'),
         )
 
     def handle(self, *config_module_names, **options):
@@ -44,6 +50,7 @@ class Command(BaseCommand):
         verbosity = options['verbosity']
         max_age = int(options['age'])
         dirs = options['dirs'].split(',')
+        move = options['move']
 
         if dryrun:
             msg = 'This is a dry run. '
@@ -66,8 +73,19 @@ class Command(BaseCommand):
                         file_path = os.path.join(dirpath, filename)
                         st_mtime = os.stat(file_path).st_mtime
                         age = time() - st_mtime
+
                         if age > max_age:
+                            duplicate_path = getattr(ConfigClass, 'duplicate_dir')()
                             if verbosity > 0:  # Use --verbosity=0 to make it quiet
-                                self.stdout.write("%s is to be deleted\n" % file_path)
+                                if move:
+                                    self.stdout.write("%s is to be moved to %s\n" % (file_path, duplicate_path))
+                                else:
+                                    self.stdout.write("%s is to be deleted\n" % file_path)
                             if not dryrun:
-                                os.remove(file_path)
+                                if move:
+                                    if not os.path.exists(duplicate_path):
+                                        os.mkdir(duplicate_path)
+                                    new_file_path = os.path.join(duplicate_path, filename)
+                                    shutil.move(file_path, new_file_path)
+                                else:
+                                    os.remove(file_path)
