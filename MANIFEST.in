@@ -1,0 +1,8 @@
+include README.rst
+include LICENSE
+recursive-include docs *
+recursive-include swallow/fixtures *.json
+recursive-include swallow/locale *
+recursive-include swallow/static *
+recursive-include swallow/templates *.txt *.html *.xml *.js
+prune docs/build
